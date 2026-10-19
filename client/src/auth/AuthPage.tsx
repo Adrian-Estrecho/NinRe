@@ -6,7 +6,7 @@ import { createFromPending, readPending } from "../lib/pending";
 import { Link, navigate, useLocation, useTitle } from "../router";
 import { useSession } from "../session";
 
-/** Sign up and log in, inside the same sky window as the website. */
+/** Sign up and log in, on the same table as the website. */
 export function AuthPage({ mode }: { mode: "login" | "signup" }) {
   const { query } = useLocation();
   const { refresh } = useSession();
@@ -53,10 +53,7 @@ export function AuthPage({ mode }: { mode: "login" | "signup" }) {
   const heading = mode === "signup" ? (invite ? "Join the book" : "Start your book") : "Welcome back";
   return (
     <div className="daylight auth">
-      <div className="sky-backdrop" aria-hidden="true" />
-      <div className="window auth-window">
-        <img className="window-photo" src="/img/hero.jpg" alt="" decoding="async" />
-        <div className="window-shade" aria-hidden="true" />
+      <div className="auth-window">
         <nav className="topnav" aria-label="Main">
           <span />
           <Link href="/" className="wordmark">NinRe</Link>

@@ -29,10 +29,7 @@ export function TestCheckout({ id }: { id: string }) {
 
   return (
     <div className="daylight auth">
-      <div className="sky-backdrop" aria-hidden="true" />
-      <div className="window auth-window">
-        <img className="window-photo" src="/img/hero.jpg" alt="" decoding="async" />
-        <div className="window-shade" aria-hidden="true" />
+      <div className="auth-window">
         <div className="receipt">
           <span className="test-flag">Test checkout</span>
           <h1>NinRe {data?.plan.name ?? ""}</h1>

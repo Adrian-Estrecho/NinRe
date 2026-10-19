@@ -35,6 +35,16 @@ const server = app.listen(port, () => {
   else if (!process.env.PAYMONGO_WEBHOOK_SECRET) console.log("PAYMONGO_WEBHOOK_SECRET is empty: payments are confirmed when people return from checkout, but webhooks are refused.");
 });
 
+server.on("error", (err: NodeJS.ErrnoException) => {
+  if (err.code === "EADDRINUSE") {
+    console.error(`Port ${port} is already taken by another program, so NinRe's API couldn't start.`);
+    console.error(`Stop that program, or set PORT to a free port in .env (the web dev server follows PORT too).`);
+  } else {
+    console.error(`NinRe's API couldn't start: ${err.message}`);
+  }
+  process.exit(1);
+});
+
 function shutdown() {
   server.close(() => {
     close();

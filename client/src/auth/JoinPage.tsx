@@ -35,10 +35,7 @@ export function JoinPage({ code }: { code: string }) {
 
   return (
     <div className="daylight auth">
-      <div className="sky-backdrop" aria-hidden="true" />
-      <div className="window auth-window">
-        <img className="window-photo" src="/img/hero.jpg" alt="" decoding="async" />
-        <div className="window-shade" aria-hidden="true" />
+      <div className="auth-window">
         <nav className="topnav" aria-label="Main">
           <span />
           <Link href="/" className="wordmark">NinRe</Link>

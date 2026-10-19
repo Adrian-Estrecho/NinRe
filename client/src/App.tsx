@@ -44,7 +44,7 @@ function GuestOnly({ children }: { children: ReactNode }) {
 function NotFound() {
   useTitle("Not found");
   return (
-    <div className="lib-empty daylight" style={{ marginTop: 80 }}>
+    <div className="lib-empty" style={{ marginTop: 80 }}>
       <h2>There's no page here</h2>
       <p>The link may be mistyped, or the page has moved.</p>
       <Link href="/" className="btn">Go to NinRe</Link>

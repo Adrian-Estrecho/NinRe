@@ -1,19 +1,20 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type FormEvent } from "react";
 import { api } from "../api";
 import { CoverDesigner } from "../book/CoverDesigner";
-import { CoverFace } from "../book/CoverFace";
-import { DEFAULT_DESIGN, bookStyle, normalizeDesign, type Design } from "../book/design";
+import { bookStyle, normalizeDesign, type Design } from "../book/design";
 import { StickerArt } from "../book/stickers";
 import { Icon, type IconName } from "../components/Icon";
 import { PageSpread } from "../dialogs/PageSpread";
-import { shelve } from "../lib/book";
+import { isPinned, shelve } from "../lib/book";
 import { fmtShort, peso } from "../lib/format";
 import { prefs } from "../lib/prefs";
+import { AtlasMap } from "../map/AtlasMap";
 import { MapDefs } from "../map/MapDefs";
 import { Link, navigate, useTitle } from "../router";
 import { useSession } from "../session";
 import type { Plan } from "../types";
-import { Confetti, FoldedCorner, Leaves, Paperclip, PushPin, Scallops, Spiral, Squiggle, Tape, Zigzag, type Metal, type TapeTone } from "./Doodles";
+import { BoardingStub, Envelope, InkStamp, LuggageTag, Snapshot, Tape, type Ink } from "./Ephemera";
+import { FlipBook, PhotoPage, StoryPage } from "./FlipBook";
 
 const FALLBACK_PLANS: Plan[] = [
   { id: "free", name: "Free", price: 0, books: 1, members: 2, photos: 300 },
@@ -21,62 +22,79 @@ const FALLBACK_PLANS: Plan[] = [
   { id: "crew", name: "Crew", price: 44900, books: null, members: 20, photos: 25000 },
 ];
 
-const SAMPLE_DESIGN: Design = normalizeDesign({
-  cloth: "#6d9cc9", texture: "canvas", foil: "white", titleFont: "modern", layout: "centered", emblem: "palm", paper: "white", photo: "clip", accent: "blue",
-  stickers: [{ k: "plane", x: 78, y: 16, r: 14, s: 1 }, { k: "heart", x: 20, y: 84, r: -12, s: 0.8 }],
+/** The cover the sample book wears until the visitor designs their own: terracotta linen and gold, warm against the blue table. */
+const DESK_DESIGN: Design = normalizeDesign({
+  cloth: "#b5532f", texture: "linen", foil: "gold", titleFont: "classic", layout: "classic", emblem: "compass", paper: "cream", photo: "polaroid", accent: "red",
 });
+
+const PEOPLE = "Mara & Josh";
 
 type Vars = CSSProperties & Record<`--${string}`, string | number>;
 
-/** Saves what the visitor made here so their first book starts from it after signing up. */
-function keepForSignup(title: string, design?: Design) {
-  prefs.set("pending", { title: title.trim(), design: design ?? null });
+/** Saves the book the visitor saw here, title and cover, so their first book starts from it after signing up. */
+function keepForSignup(title: string, design: Design) {
+  prefs.set("pending", { title: title.trim(), design });
 }
 
 export function Landing() {
   useTitle("");
   const { me } = useSession();
   const [title, setTitle] = useState("");
-  const [design, setDesign] = useState<Design>(() => normalizeDesign(prefs.get<{ design?: Design } | null>("pending", null)?.design ?? DEFAULT_DESIGN));
+  const [design, setDesign] = useState<Design>(() => normalizeDesign(prefs.get<{ design?: Design } | null>("pending", null)?.design ?? DESK_DESIGN));
   const [plans, setPlans] = useState<Plan[]>(FALLBACK_PLANS);
   const [open, setOpen] = useState<{ id: string; photo: number } | null>(null);
+  const [mapOn, setMapOn] = useState(false);
   const shelf = useMemo(() => shelve([]), []);
+  const list = shelf.list;
   const root = useRef<HTMLDivElement>(null);
+  const atlasRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     api.plans().then((p) => setPlans(p.plans)).catch(() => {});
   }, []);
 
-  // Cards settle into place as they scroll into view.
+  // Paper settles onto the table as it scrolls into view.
   useEffect(() => {
     const els = root.current?.querySelectorAll<HTMLElement>("[data-settle]");
     if (!els?.length || !("IntersectionObserver" in window)) return;
     const io = new IntersectionObserver((entries) => {
       for (const e of entries) if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); }
-    }, { rootMargin: "0px 0px -12% 0px" });
+    }, { rootMargin: "0px 0px -10% 0px" });
     els.forEach((el) => io.observe(el));
     return () => io.disconnect();
   }, []);
 
-  function start(e?: FormEvent, withDesign?: boolean) {
+  // The atlas and its coastlines load once the map is nearly on screen.
+  useEffect(() => {
+    const el = atlasRef.current;
+    if (!el || !("IntersectionObserver" in window)) { setMapOn(true); return; }
+    const io = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setMapOn(true); io.disconnect(); } }, { rootMargin: "600px 0px" });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
+  function start(e?: FormEvent) {
     e?.preventDefault();
-    keepForSignup(title, withDesign ? design : undefined);
+    keepForSignup(title, design);
     navigate(me ? "/app?new=1" : "/signup?next=new");
   }
 
   const shownTitle = title.trim() || "Our Book of Travels";
-  const siargao = shelf.list[2];
+  const [tagaytay, , siargao, kyoto] = list;
+  const pins = useMemo(() => list.filter(isPinned).map((p) => ({ id: p.id, lat: p.place.lat, lng: p.place.lng, n: p.n, label: `${p.n}. ${p.place.name}` })), [list]);
+  const { style: bookVars, data: bookData } = bookStyle(design);
 
   return (
     <div className="landing" ref={root}>
-      {/* ---------- Hero: the window ---------- */}
-      <div className="sky-backdrop" aria-hidden="true" />
-      <header className="window" id="top">
-        <img className="window-photo" src="/img/hero.jpg" alt="" fetchPriority="high" decoding="async" />
-        <div className="window-shade" aria-hidden="true" />
+      {(mapOn || open) && <MapDefs />}
 
+      {/* ---------- A day out in Batanes, and the book on top of it ---------- */}
+      <header className="hero" id="top">
+        <img className="hero-photo" src="/img/hero.jpg" alt="" fetchPriority="high" decoding="async" />
+        <div className="hero-shade" aria-hidden="true" />
         <nav className="topnav" aria-label="Main">
           <div className="topnav-links">
+            <a href="#pages">Pages</a>
             <a href="#design">Design</a>
             <a href="#pricing">Pricing</a>
           </div>
@@ -93,286 +111,271 @@ export function Landing() {
           </div>
         </nav>
 
-        <aside className="glass book-card" aria-label="A sample book">
-          <div className="book-card-cover">
-            <CoverFace design={SAMPLE_DESIGN} title={shownTitle} subtitle="Mara & Josh" />
-          </div>
-          <div className="book-card-text">
-            <span className="book-card-kind">Sample book · 4 pages</span>
-            <strong>{shownTitle}</strong>
-            <span>Mara &amp; Josh, since 2023</span>
-            <span className="book-card-tags">Tagaytay · Intramuros · Siargao · Kyoto</span>
-          </div>
-        </aside>
-
-        <Scallops className="d-scallops" />
-        <Spiral className="d-spiral" />
-        <Squiggle className="d-squig d-squig-1" />
-        <Squiggle className="d-squig d-squig-2" />
-        <Leaves className="d-leaves" />
-        <Confetti className="d-confetti" />
-        <Zigzag className="d-zigzag" />
-
-        <div className="hero-copy">
-          <h1 className="hero-title">
-            <span className="hl">The places</span>
-            <span className="hl">we’ve been,</span>
-            <span className="hl">bound in</span>
-            <span className="hl">one book</span>
-            <span className="chip-sticker s1" style={{ "--d": "0s" } as Vars}><i className="badge azure"><Icon name="camera" /></i>Polaroids</span>
-            <span className="chip-sticker s2" style={{ "--d": ".12s" } as Vars}><i className="badge violet"><Icon name="sparkle" /></i>Postmarks</span>
-            <span className="chip-sticker s3" style={{ "--d": ".24s" } as Vars}><i className="badge coral"><Icon name="pin" /></i>Pins &amp; notes</span>
-          </h1>
-          <p className="hero-sub">A travel diary for couples and friends. Everyone you invite writes in the same book: photos, the place, the story, and a note from each of you.</p>
-          <form className="glass start-form" onSubmit={start}>
-            <label htmlFor="hero-title" className="sr-only">Name your book</label>
-            <input id="hero-title" type="text" maxLength={60} placeholder="Name your book" value={title} onChange={(e) => setTitle(e.target.value)} autoComplete="off" />
-            <button type="submit" className="btn">Start free</button>
-          </form>
-          <p className="hero-fine">Free for one book and two people. No card needed.</p>
+        <div className="desk-things" aria-hidden="true">
+          <LuggageTag className="h-tag" lines={[["Name", PEOPLE], ["Bound for", siargao.place.name]]} />
+          <BoardingStub className="h-stub" from="MNL" to="IAO" date={fmtShort(siargao.date)} seats="14A · 14B" />
+          <Envelope className="h-env" postmark={list[1]}>
+            <p className="env-to">{PEOPLE}<span>the long way home</span></p>
+          </Envelope>
+          <Snapshot className="h-snap" src={kyoto.photos[0].url} caption={kyoto.photos[0].caption} />
+          <Snapshot className="h-snap-2" src={tagaytay.photos[1].url} caption={tagaytay.photos[1].caption} />
         </div>
 
-        <p className="hero-tag">
-          <span>— not just photos.</span>
-          <span>a book you both</span>
-          <span>write in</span>
-        </p>
+        <div className="hero-copy">
+          <h1 className="hero-title">The places we’ve been, <span>bound in one book</span></h1>
+          <p className="hero-sub">A travel diary for couples and friends. Everyone you invite writes in the same book: photos, the place, the story, and a note from each of you.</p>
+        </div>
 
-        <div className="dock glass" role="group" aria-label="What a page holds">
-          {([["camera", "Photos", "azure", "#inside"], ["pin", "Places", "coral", "#inside"], ["pen", "Notes", "sun", "#inside"], ["palette", "Design", "violet", "#design"]] as [IconName, string, string, string][]).map(([icon, label, tone, href]) => (
-            <a key={label} href={href} className={`dock-app ${tone}`} aria-label={label} data-label={label}>
+        <FlipBook className="hero-book" design={design} title={shownTitle} people={PEOPLE} pages={list} onRead={(id) => setOpen({ id, photo: 0 })} onStart={() => start()} />
+
+        <form className="glass start-form" onSubmit={start}>
+          <label htmlFor="hero-title" className="sr-only">Name your book</label>
+          <input id="hero-title" type="text" maxLength={60} placeholder="Name your book" value={title} onChange={(e) => setTitle(e.target.value)} autoComplete="off" />
+          <button type="submit" className="btn">Start free</button>
+        </form>
+        <p className="hero-fine">Free for one book and two people. No card needed.</p>
+
+        <nav className="dock glass" aria-label="Jump to">
+          {([["pin", "The map", "coral", "#pages"], ["camera", "What’s on a page", "azure", "#inside"], ["palette", "Design a cover", "violet", "#design"], ["people", "Plans", "sun", "#pricing"]] as [IconName, string, string, string][]).map(([icon, label, tone, href]) => (
+            <a key={href} href={href} className={`dock-app ${tone}`} aria-label={label} data-label={label}>
               <Icon name={icon} />
             </a>
           ))}
-        </div>
-
-        <div className="page-stack">
-          {[3, 1, 0].map((i, k) => {
-            const p = shelf.list[i];
-            return (
-              <button key={p.id} type="button" className="glass page-card" style={{ "--k": k } as Vars} onClick={() => setOpen({ id: p.id, photo: 0 })} tabIndex={k === 2 ? 0 : -1} aria-hidden={k !== 2}>
-                <img src={p.photos[0].url} alt="" />
-                <span className="page-card-text">
-                  <b>{p.title}</b>
-                  <span>Page {p.n} · {p.place.name} · Open <Icon name="right" /></span>
-                </span>
-              </button>
-            );
-          })}
-        </div>
+        </nav>
       </header>
 
-      {/* ---------- One book ---------- */}
-      <section className="sec paper-sec about" id="about" aria-labelledby="about-h">
-        <Scallops className="d-about-scallops" />
-        <Spiral className="d-about-spiral" />
-        <Leaves className="d-about-leaves" />
-        <h2 id="about-h" className="sec-title">One book.<br />Everyone writes in it.</h2>
-        <p className="sec-lede">Make a book for the two of you, or for the whole barkada. Everyone you invite adds pages, photos and notes to the same book. Read it back in chapters, on a map, or as one long album.</p>
-        <button type="button" className="pin-btn" onClick={() => start()}><PushPin className="pin-btn-pin" />Start a book</button>
-
-        <div className="facts">
-          {[
-            ["12", "photos on a page", "Resized on your phone before they upload, so even long trips stay quick to open.", "lime"],
-            ["3", "ways to read it", "Chapters by year, an atlas of numbered pins, and an album of every photo.", "violet"],
-            ["20", "people in one book", "On Crew. Free fits two of you, and Plus fits six.", "coral"],
-            ["₱0", "to start", "One book for two people, free for as long as you like.", "azure"],
-          ].map(([n, label, text, tone], i) => (
-            <article key={label} className={`fact tone-${tone}`} data-settle style={{ "--r": `${[-4, 3, -2.5, 4][i]}deg`, "--i": i } as Vars}>
-              <Paperclip className="fact-clip" metal={(["steel", "coral", "steel", "azure"] as Metal[])[i]} />
-              <span className="fact-n">{n}</span>
-              <h3>{label}</h3>
-              <p>{text}</p>
-              <FoldedCorner tone={({ lime: "#d4ef3a", violet: "#b9a7ff", coral: "#ff9ab0", azure: "#8ec5ff" } as Record<string, string>)[tone]} />
-            </article>
+      {/* ---------- One book: a passport page of stamps ---------- */}
+      <section className="sec about" id="about" aria-labelledby="about-h">
+        <div className="sec-head">
+          <h2 id="about-h" className="sec-title">One book.<br />Everyone writes in it.</h2>
+          <p className="sec-lede">Make a book for the two of you, or for the whole barkada. Everyone you invite adds pages, photos and notes to the same book. Read it back in chapters, on a map, or as one long album.</p>
+          <button type="button" className="btn sun" onClick={() => start()}>Start a book</button>
+        </div>
+        <div className="passport" data-settle>
+          {[0, 2].map((from, side) => (
+            <div key={side} className="passport-page">
+              {([
+                ["round", "blue", "12", "photos on a page", "every page", "Resized on your phone before they upload, so even long trips stay quick to open."],
+                ["rect", "red", "3", "ways to read it", "chapters · atlas · album", "Chapters by year, an atlas of numbered pins, and an album of every photo."],
+                ["octagon", "green", "20", "people in one book", "on crew", "On Crew. Free fits two of you, and Plus fits six."],
+                ["oval", "plum", "₱0", "to start", "free for good", "One book for two people, free for as long as you like."],
+              ] as [Parameters<typeof InkStamp>[0]["shape"], Ink, string, string, string, string][]).slice(from, from + 2).map(([shape, ink, big, top, foot, text], i) => (
+                <div key={top} className="entry" style={{ "--r": `${[-8, 6, 5, -7][from + i]}deg` } as Vars}>
+                  <InkStamp shape={shape} ink={ink} big={big} top={top} foot={foot} />
+                  <p>{text}</p>
+                </div>
+              ))}
+              <span className="passport-n" aria-hidden="true">{14 + side}</span>
+            </div>
           ))}
         </div>
       </section>
 
-      {/* ---------- Sample pages ---------- */}
-      <section className="sec bloom-sec" id="pages" aria-labelledby="pages-h">
-        <h2 id="pages-h" className="sec-title">Pages that<br />tell stories</h2>
-        <p className="sec-lede">Every date, weekend away and long trip becomes a page. These four are from a sample book. Open one to read it like the real thing.</p>
-        <div className="scards">
-          {shelf.list.map((p, i) => (
-            <button key={p.id} type="button" className="scard" data-settle style={{ "--r": `${[-6, 4, -3, 5][i]}deg`, "--i": i } as Vars} onClick={() => setOpen({ id: p.id, photo: 0 })}>
-              {i % 2 ? <Paperclip className="scard-clip" metal={(["azure", "lilac"] as Metal[])[(i - 1) / 2]} /> : <Tape className="scard-tape" tone={(["butter", "sky"] as TapeTone[])[i / 2]} />}
-              <span className="scard-photo"><img src={p.photos[0].url} alt={p.photos[0].caption} loading="lazy" decoding="async" /></span>
-              <span className="scard-cap">{p.photos[0].caption}</span>
-              <span className="scard-foot">
-                <b>{p.title}</b>
-                <span>{p.place.name} · {fmtShort(p.date)} · page {p.n}</span>
-              </span>
+      {/* ---------- Every page on the map ---------- */}
+      <section className="sec atlas-sec" id="pages" aria-labelledby="pages-h">
+        <div className="sec-head">
+          <h2 id="pages-h" className="sec-title">Pages that<br />tell stories</h2>
+          <p className="sec-lede">Every date, weekend away and long trip becomes a page, and every page lands on the book’s own map. These four are from a sample book. Open one to read it like the real thing.</p>
+        </div>
+        <div className="atlas-desk" ref={atlasRef}>
+          <div className="map-sheet folded" data-settle style={{ "--r": "-1deg" } as Vars}>
+            {mapOn ? <AtlasMap pins={pins} route interactive={false} controls={false} label={`Map of the sample book: ${list.map((p) => p.place.name).join(", ")}`} /> : <div className="amap" />}
+            <svg className="compass" viewBox="-30 -38 60 68" aria-hidden="true">
+              <circle r="26" fill="none" stroke="currentColor" strokeWidth=".8" />
+              <circle r="21" fill="none" stroke="currentColor" strokeWidth=".5" strokeDasharray="1 2" />
+              <path d="M0-24L4 0 0 24-4 0Z" fill="currentColor" opacity=".25" />
+              <path d="M0-24L4 0H-4Z" fill="currentColor" />
+              <text y="-29" textAnchor="middle" fontSize="8" fill="currentColor" fontFamily="DM Mono, monospace">N</text>
+            </svg>
+            <p className="cartouche">{shownTitle}<small>Sample book · {list.length} pages</small></p>
+          </div>
+          {list.map((p, i) => (
+            <button key={p.id} type="button" className={`atlas-pol pol-${i}`} data-settle style={{ "--r": `${[-6, 5, -4, 6][i]}deg`, "--i": i } as Vars} onClick={() => setOpen({ id: p.id, photo: 0 })}>
+              <Tape className="atlas-pol-tape" tone={(["butter", "sky", "blush", "mint"] as const)[i]} />
+              <span className="pin-n" aria-hidden="true">{p.n}</span>
+              <span className="atlas-pol-photo"><img src={p.photos[0].url} alt={p.photos[0].caption} loading="lazy" decoding="async" /></span>
+              <span className="atlas-pol-cap">{p.photos[0].caption}</span>
+              <span className="atlas-pol-meta"><b>{p.title}</b>{p.place.name} · {fmtShort(p.date)}</span>
             </button>
           ))}
-          <button type="button" className="scard blank" data-settle style={{ "--r": "-2deg", "--i": 4 } as Vars} onClick={() => start()}>
-            <Tape className="scard-tape" tone="mint" />
-            <span className="blank-in">
-              <Icon name="plus" />
-              <b>Your first page</b>
-              <span>Start a book, free</span>
-            </span>
-          </button>
         </div>
-        <span className="chip-sample on-photo">Sample pages</span>
       </section>
 
-      {/* ---------- The designer ---------- */}
-      <section className="sec paper-sec design-sec" id="design" aria-labelledby="design-h">
-        <Zigzag className="d-design-zig" />
-        <Confetti className="d-design-confetti" />
-        <h2 id="design-h" className="sec-title">Design the book<br />that’s yours</h2>
-        <p className="sec-lede">Cloth, foil, type, stickers and paper. Turn the book, drag stickers onto it, try a few looks. When you sign up, your first book starts with this cover.</p>
-        <CoverDesigner
-          design={design}
-          onChange={setDesign}
-          title={shownTitle}
-          subtitle="Mara & Josh"
-          previewPage={siargao}
-          idPrefix="try"
-          stageDecor={<><Tape className="mat-tape mat-tape-l" tone="blush" /><Tape className="mat-tape mat-tape-r" tone="sky" /></>}
-          header={
-            <div className="fld">
-              <label htmlFor="try-title">Title on the cover</label>
-              <input id="try-title" type="text" maxLength={60} placeholder="Our Book of Travels" value={title} onChange={(e) => setTitle(e.target.value)} autoComplete="off" />
-            </div>
-          }
-          footer={
-            <div className="try-foot">
-              <button type="button" className="btn" onClick={() => start(undefined, true)}>Start free with this cover</button>
-              <span className="hint">Free for one book and two people.</span>
-            </div>
-          }
-        />
+      {/* ---------- The designer, on a sheet of paper ---------- */}
+      <section className="sec design-sec" id="design" aria-labelledby="design-h">
+        <div className="sec-head">
+          <h2 id="design-h" className="sec-title">Design the book<br />that’s yours</h2>
+          <p className="sec-lede">Cloth, foil, type, stickers and paper. Turn the book, drag stickers onto it, try a few looks. The book at the top of this page changes with you, and your first book starts with this cover.</p>
+        </div>
+        <div className="sheet" data-settle style={{ "--r": ".4deg" } as Vars}>
+          <Tape className="sheet-tape sheet-tape-l" tone="butter" />
+          <Tape className="sheet-tape sheet-tape-r" tone="sky" />
+          <CoverDesigner
+            design={design}
+            onChange={setDesign}
+            title={shownTitle}
+            subtitle={PEOPLE}
+            previewPage={siargao}
+            idPrefix="try"
+            header={
+              <div className="fld">
+                <label htmlFor="try-title">Title on the cover</label>
+                <input id="try-title" type="text" maxLength={60} placeholder="Our Book of Travels" value={title} onChange={(e) => setTitle(e.target.value)} autoComplete="off" />
+              </div>
+            }
+            footer={
+              <div className="try-foot">
+                <button type="button" className="btn sun" onClick={() => start()}>Start free with this cover</button>
+                <span className="hint">Free for one book and two people.</span>
+              </div>
+            }
+          />
+        </div>
       </section>
 
-      {/* ---------- What goes on a page ---------- */}
-      <section className="sec paper-sec inside" id="inside" aria-labelledby="inside-h">
-        <Squiggle className="d-inside-squig" />
-        <div className="split">
-          <div className="split-head">
+      {/* ---------- What goes on a page: one page, with its parts marked ---------- */}
+      <section className="sec inside" id="inside" aria-labelledby="inside-h">
+        <div className="inside-grid">
+          <div className="inside-head">
             <h2 id="inside-h" className="sec-title left">What goes<br />on a page</h2>
-            <p className="sec-lede left">Five things, every time. Tap one to see how it works.</p>
-            <span className="inside-sticker" aria-hidden="true"><StickerArt kind="camera" /></span>
+            <p className="sec-lede left">Five things, every time. Tap one to see where it sits on the page.</p>
           </div>
-          <Inside />
+          <Inside page={siargao} design={design} />
         </div>
       </section>
 
-      {/* ---------- Pricing ---------- */}
-      <section className="sec paper-sec pricing" id="pricing" aria-labelledby="pricing-h">
-        <Scallops className="d-price-scallops" />
-        <h2 id="pricing-h" className="sec-title">Plans for two,<br />or twenty</h2>
-        <p className="sec-lede">Prices in pesos. Pay for 1, 6 or 12 months at a time through PayMongo, with card, GCash or Maya. Nothing renews by itself.</p>
-        <div className="pcards">
+      {/* ---------- Plans, as boarding passes ---------- */}
+      <section className="sec pricing" id="pricing" aria-labelledby="pricing-h">
+        <div className="sec-head">
+          <h2 id="pricing-h" className="sec-title">Plans for two,<br />or twenty</h2>
+          <p className="sec-lede">Prices in pesos. Pay for 1, 6 or 12 months at a time through PayMongo, with card, GCash or Maya. Nothing renews by itself.</p>
+        </div>
+        <div className="passes">
           {plans.map((p, i) => (
-            <article key={p.id} className={`pcard pcard-${p.id}`} data-settle style={{ "--r": `${[-1.5, 0, 1.5][i] ?? 0}deg`, "--i": i } as Vars}>
-              <Tape className="pcard-tape" tone={(["mint", "sky", "lilac"] as TapeTone[])[i] ?? "butter"} />
-              {p.id === "plus" && <span className="pcard-flag"><StickerArt kind="star" /></span>}
-              <header>
-                <h3>{p.name}</h3>
+            <article key={p.id} className={`pass pass-${p.id}`} data-settle style={{ "--r": `${[-1.2, 0, 1.2][i] ?? 0}deg`, "--i": i } as Vars} aria-labelledby={`plan-${p.id}`}>
+              {p.id === "plus" && <span className="pass-star" aria-hidden="true"><StickerArt kind="star" /></span>}
+              <div className="pass-top">
+                <header className="pass-head">
+                  <h3 id={`plan-${p.id}`}>{p.name}</h3>
+                  <svg className="pass-plane" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M2.5 13.2 21 7.5c1-.3 1.6.9.8 1.5L9.4 16.6l-1.2 4.1-2-.6.6-3.4-4.6-1.8c-.9-.3-.8-1.5.3-1.7Z" fill="currentColor" /></svg>
+                </header>
+                <dl className="pass-fields">
+                  <div><dt>Books</dt><dd>{p.books == null ? "As many as you like" : p.books === 1 ? "1 book" : `${p.books} books`}</dd></div>
+                  <div><dt>People per book</dt><dd>Up to {p.members}</dd></div>
+                  <div><dt>Photos</dt><dd>{p.photos.toLocaleString("en-PH")}</dd></div>
+                </dl>
+              </div>
+              <div className="pass-stub">
                 <p className="price"><b>{p.price ? peso(p.price) : "₱0"}</b><span>{p.price ? "a month" : "always"}</span></p>
-              </header>
-              <ul>
-                <li>{p.books == null ? "As many books as you like" : `${p.books} book`}</li>
-                <li>Up to {p.members} people in each book</li>
-                {p.id === "crew" && <li>More photo storage</li>}
-                <li>Every cover, sticker and paper</li>
-                <li>Chapters, atlas, album and notes</li>
-              </ul>
-              <button type="button" className={`btn ${p.id === "plus" ? "" : "line"}`} onClick={() => { keepForSignup(title); navigate(me ? (p.price ? "/app/account" : "/app") : `/signup${p.price ? `?plan=${p.id}` : ""}`); }}>
-                {p.price ? `Choose ${p.name}` : "Start free"}
-              </button>
+                <button type="button" className={`btn ${p.id === "plus" ? "" : "line"}`} onClick={() => { keepForSignup(title, design); navigate(me ? (p.price ? "/app/account" : "/app") : `/signup${p.price ? `?plan=${p.id}` : ""}`); }}>
+                  {p.price ? `Choose ${p.name}` : "Start free"}
+                </button>
+                <span className="barcode" aria-hidden="true" />
+              </div>
             </article>
           ))}
         </div>
-        <p className="pcards-note">When paid months run out, the book goes back to Free limits. Nothing is deleted: you can still read and edit everything, and adding more waits until you renew.</p>
+        <p className="passes-all"><b>On every plan:</b> every cover, sticker and paper; chapters, atlas, album and notes; invite links. Photos count across all the books you own.</p>
+        <p className="tickets-note">When paid months run out, the book goes back to Free limits. Nothing is deleted: you can still read and edit everything, and adding more waits until you renew.</p>
       </section>
 
-      {/* ---------- FAQ ---------- */}
-      <section className="sec paper-sec faq" aria-labelledby="faq-h">
-        <div className="split">
-          <div className="split-head">
-            <h2 id="faq-h" className="sec-title small left">Good<br />to know</h2>
-            <span className="faq-sticker" aria-hidden="true"><StickerArt kind="hello" /></span>
-          </div>
+      {/* ---------- Good to know, on a legal pad ---------- */}
+      <section className="sec faq" aria-labelledby="faq-h">
+        <div className="pad" data-settle style={{ "--r": "-.6deg" } as Vars}>
+          <h2 id="faq-h" className="pad-title">Good to know</h2>
           <div className="faq-list">
-          {[
-            ["Who can see our book?", "Only the people in it. Photos are private too: they only load for members who are signed in."],
-            ["How do we write in it together?", "Open the book's People panel and share the invite link. It works for 14 days, and anyone who joins can add pages, photos and notes."],
-            ["Does a plan renew automatically?", "No. Each payment covers the months you choose, and the app tells you a week before they run out."],
-            ["What happens if a plan runs out?", "Everything stays. The book drops to Free limits, so new books, people or photos past those limits wait until you renew."],
-            ["Can we print the book?", "Not yet."],
-          ].map(([q, a]) => (
-            <details key={q}>
-              <summary>{q}<Icon name="plus" /></summary>
-              <p>{a}</p>
-            </details>
-          ))}
+            {[
+              ["Who can see our book?", "Only the people in it. Photos are private too: they only load for members who are signed in."],
+              ["How do we write in it together?", "Open the book’s People panel and share the invite link. It works for 14 days, and anyone who joins can add pages, photos and notes."],
+              ["Does a plan renew automatically?", "No. Each payment covers the months you choose, and the app tells you a week before they run out."],
+              ["What happens if a plan runs out?", "Everything stays. The book drops to Free limits, so new books, people or photos past those limits wait until you renew."],
+              ["Can we print the book?", "Not yet."],
+            ].map(([q, a]) => (
+              <details key={q}>
+                <summary>{q}<Icon name="plus" /></summary>
+                <p>{a}</p>
+              </details>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* ---------- Close ---------- */}
+      {/* ---------- Close: an envelope to send yourselves ---------- */}
       <footer className="closing">
-        <div className="closing-window">
-          <img src="/img/hero.jpg" alt="" loading="lazy" decoding="async" />
+        <Envelope className="close-env" postmark={kyoto} style={{ "--r": "-1.2deg" } as Vars}>
           <div className="closing-in">
-            <h2 className="sec-title on-sky">Start the first page<br />tonight</h2>
-            <form className="glass start-form" onSubmit={start}>
+            <h2 className="sec-title ink">Start the first page<br />tonight</h2>
+            <form className="ticket-form" onSubmit={start}>
               <label htmlFor="close-title" className="sr-only">Name your book</label>
               <input id="close-title" type="text" maxLength={60} placeholder="Name your book" value={title} onChange={(e) => setTitle(e.target.value)} autoComplete="off" />
-              <button type="submit" className="btn">Start free</button>
+              <button type="submit" className="ticket-go">Start free</button>
             </form>
+            <p className="closing-fine">Free for one book and two people. No card needed.</p>
           </div>
-        </div>
+        </Envelope>
         <div className="foot-row">
           <span className="wordmark small">NinRe</span>
           <nav aria-label="Footer">
-            <a href="#pricing">Pricing</a>
+            <a href="#pricing">Plans</a>
             <Link href="/login">Log in</Link>
             <Link href="/signup">Sign up</Link>
           </nav>
-          <span className="foot-fine">Photographs from Unsplash. Payments by PayMongo.</span>
+          <span className="foot-fine">Sample photographs from Unsplash. Payments by PayMongo.</span>
         </div>
       </footer>
 
       {open && (
-        <div className="book-scope" style={bookStyle(SAMPLE_DESIGN).style} {...bookStyle(SAMPLE_DESIGN).data}>
-          <MapDefs />
-          <PageSpread list={shelf.list} id={open.id} photo={open.photo} canEdit={false} onGo={(id, photo = 0) => setOpen({ id, photo })} onClose={() => setOpen(null)} />
+        <div className="book-scope" style={bookVars} {...bookData}>
+          <PageSpread list={list} id={open.id} photo={open.photo} canEdit={false} onGo={(id, photo = 0) => setOpen({ id, photo })} onClose={() => setOpen(null)} />
         </div>
       )}
     </div>
   );
 }
 
-/** The pastel rows: each opens to say what that part of a page does. */
-function Inside() {
-  const rows: { id: string; tone: string; icon: IconName; title: string; text: string }[] = [
-    { id: "photos", tone: "blush", icon: "camera", title: "Photos", text: "Up to 12 on a page, resized on your phone before they upload. The first becomes the polaroid on top, and every one gets a handwritten caption." },
-    { id: "places", tone: "sky", icon: "pin", title: "The place", text: "Pick from 83 places that pin themselves, or tap the map to drop your own. Every page lands on the book's atlas with a numbered pin and a dashed route in the order things happened." },
-    { id: "story", tone: "butter", icon: "book", title: "The story", text: "Lined paper for the long version of the day. Unsaved pages stay on your phone, so a closed tab doesn't lose a word." },
-    { id: "notes", tone: "mint", icon: "pen", title: "Notes from each of you", text: "Short sticky notes on any page, signed by whoever wrote them. The quickest way to answer the other person's version of events." },
-    { id: "postmark", tone: "lime", icon: "sparkle", title: "A postmark", text: "Every page is stamped with the place, the date and a three-letter code, in your book's own ink." },
-  ];
+type Part = { id: string; title: string; text: string };
+
+const PARTS: Part[] = [
+  { id: "photos", title: "Photos", text: "Up to 12 on a page, resized on your phone before they upload. The first becomes the polaroid on top, and every one gets a handwritten caption." },
+  { id: "places", title: "The place", text: "Pick from 83 places that pin themselves, or tap the map to drop your own. Every page lands on the book’s atlas with a numbered pin and a dashed route in the order things happened." },
+  { id: "story", title: "The story", text: "Lined paper for the long version of the day. Unsaved pages stay on your phone, so a closed tab doesn’t lose a word." },
+  { id: "notes", title: "Notes from each of you", text: "Short sticky notes on any page, signed by whoever wrote them. The quickest way to answer the other person’s version of events." },
+  { id: "postmark", title: "A postmark", text: "Every page is stamped with the place, the date and a three-letter code, in your book’s own ink." },
+];
+
+/** One real page lying open, its five parts numbered like pins, with a key beside it. */
+function Inside({ page, design }: { page: Parameters<typeof StoryPage>[0]["page"]; design: Design }) {
   const [open, setOpen] = useState<string | null>(() => {
     const h = location.hash.replace("#inside-", "");
-    return rows.some((r) => r.id === h) ? h : "photos";
+    return PARTS.some((r) => r.id === h) ? h : "photos";
   });
+  const { style, data } = bookStyle(design);
   return (
-    <ul className="prows">
-      {rows.map((r, i) => (
-        <li key={r.id} className={`prow tone-${r.tone}${open === r.id ? " open" : ""}`} id={`inside-${r.id}`} data-settle style={{ "--i": i } as Vars}>
-          <button type="button" aria-expanded={open === r.id} aria-controls={`inside-${r.id}-text`} onClick={() => setOpen(open === r.id ? null : r.id)}>
-            <span>{r.title}</span>
-            <i className={`badge prow-badge tone-${r.tone}`}><Icon name={r.icon} /></i>
-          </button>
-          <div className="prow-body" id={`inside-${r.id}-text`} hidden={open !== r.id}>
-            <p>{r.text}</p>
-          </div>
-        </li>
-      ))}
-    </ul>
+    <>
+      <div className="inside-book" data-settle style={{ "--r": "-1.5deg" } as Vars}>
+        <div className="fb fb-open" style={style as Vars} {...data} data-hot={open ?? undefined} aria-hidden="true">
+          <div className="fb-board" />
+          <div className="fb-face fb-back fb-static" inert><PhotoPage page={page} /></div>
+          <div className="fb-face fb-front fb-static" inert><StoryPage page={page} /></div>
+          {PARTS.map((p, i) => (
+            <span key={p.id} className={`pin-n mark mark-${p.id}${open === p.id ? " hot" : ""}`}>{i + 1}</span>
+          ))}
+        </div>
+      </div>
+      <ol className="parts">
+        {PARTS.map((r, i) => (
+          <li key={r.id} className={`part${open === r.id ? " open" : ""}`} id={`inside-${r.id}`}>
+            <button type="button" aria-expanded={open === r.id} aria-controls={`inside-${r.id}-text`} onClick={() => setOpen(open === r.id ? null : r.id)}>
+              <span className="pin-n" aria-hidden="true">{i + 1}</span>
+              <span>{r.title}</span>
+              <Icon name="plus" />
+            </button>
+            <div className="part-body" id={`inside-${r.id}-text`} hidden={open !== r.id}>
+              <p>{r.text}</p>
+            </div>
+          </li>
+        ))}
+      </ol>
+    </>
   );
 }

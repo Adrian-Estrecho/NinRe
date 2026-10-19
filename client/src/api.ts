@@ -12,6 +12,7 @@ export class ApiError extends Error {
 }
 
 const OFFLINE = "Can't reach NinRe right now. Check your connection and try again.";
+const NO_SERVER = "NinRe's server isn't answering right now. Try again in a moment.";
 
 async function call<T>(path: string, init: RequestInit = {}): Promise<T> {
   let res: Response;
@@ -22,7 +23,11 @@ async function call<T>(path: string, init: RequestInit = {}): Promise<T> {
   }
   if (res.status === 204) return undefined as T;
   const body = await res.json().catch(() => null);
-  if (!res.ok) throw new ApiError(res.status, (body && typeof body.error === "string" && body.error) || `The server answered ${res.status}.`);
+  if (!res.ok) {
+    // NinRe's API always explains itself. A bare error means the request never reached it.
+    if (body && typeof body.error === "string") throw new ApiError(res.status, body.error);
+    throw new ApiError(res.status, NO_SERVER);
+  }
   return body as T;
 }
 

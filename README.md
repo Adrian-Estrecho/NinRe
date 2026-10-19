@@ -2,13 +2,13 @@
 
 A travel diary for couples and friends, built as a book. Everyone you invite writes in the same book. Each page holds photos, a pin on the book's own atlas, the date, the story of the day, a postmark, and short notes from each person. Pages gather into chapters by year. The book's cover and paper can be designed: cloth, foil, type, emblem, stickers, paper, photo style and ink.
 
-![The NinRe website: a sky-and-hills window with the headline "The places we've been, bound in one book"](docs/landing.png)
+![The NinRe website: a blue travel desk with the headline "The places we've been, bound in one book", the sample book open in the middle, and a luggage tag, boarding pass, airmail envelope and snapshots around it](docs/landing.png)
 
 ## What's inside
 
 | Part | What it does |
 | --- | --- |
-| **Website** (`/`) | The sky window from the design reference. Name your book in the hero, read the sample pages, try the cover designer, compare plans and read the FAQ. A cover designed here becomes the first book's cover after sign-up. |
+| **Website** (`/`) | A travel desk with the sample book in the middle: open it and turn its pages (drag, tap or arrow keys). Below that are the sample pages pinned on a map, the cover designer, the plans as tickets and the FAQ. Every section is paper on the same table. The book's cover follows the designer, and that cover becomes the first book's cover after sign-up. |
 | **Accounts** | Email and password. Sessions are HTTP-only cookies; passwords are hashed with scrypt. Change your name or password, or delete the account. |
 | **Shelf** (`/app`) | Every book you own or write in, shown as covers. Free allows one book. |
 | **Book** (`/app/book/:id`) | A turnable copy of the designed book beside the title, names, day counter and ledger. Read it as **Chapters** (one per year), an **Atlas** (numbered pins and a dashed route), or an **Album** (every photo). Open any page as a two-page spread with its sticky notes. |
