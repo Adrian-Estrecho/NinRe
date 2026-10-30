@@ -216,6 +216,30 @@ describe("a shared book", () => {
     assert.deepEqual(after.notes, []);
   });
 
+  test("the home gathers totals, places and this day in earlier years across a person's books", async () => {
+    await mara.post(`/api/books/${bookId}/pages`, { ...PAGE, title: "Back on the boardwalk", date: "2026-04-20" });
+    await mara.post(`/api/books/${bookId}/pages`, { ...PAGE, title: "Taal, for ten seconds", date: "2024-04-17", place: { name: "Tagaytay", region: "Cavite", lat: 14.1153, lng: 120.9621 } });
+
+    const home = await j(await mara.get("/api/dashboard?today=2026-04-17"));
+    assert.deepEqual(home.totals, { books: 1, pages: 3, photos: 1, places: 2, people: 1, since: "2024-04-17" });
+    assert.deepEqual(home.places.map((p: { name: string; pages: number; last: string }) => [p.name, p.pages, p.last]), [["Siargao", 2, "2026-04-20"], ["Tagaytay", 1, "2024-04-17"]]);
+    assert.equal(home.onThisDay.match, "day");
+    assert.deepEqual(home.onThisDay.pages.map((p: { title: string; years: number }) => [p.title, p.years]), [["Salt, sun, scooters", 1], ["Taal, for ten seconds", 2]]);
+    assert.equal(home.onThisDay.pages[0].bookTitle, "Salt & Sunburn");
+    assert.match(home.onThisDay.pages[0].photo.url, new RegExp(`^/uploads/${bookId}/`));
+    assert.equal(home.onThisDay.pages[1].photo, null);
+
+    // Nothing on the day itself, so the week around it; then nothing at all.
+    const week = await j(await josh.get("/api/dashboard?today=2027-04-15"));
+    assert.equal(week.onThisDay.match, "week");
+    assert.equal(week.onThisDay.pages.length, 2);
+    assert.equal((await j(await josh.get("/api/dashboard?today=2026-12-01"))).onThisDay.match, "none");
+
+    const empty = await j(await kai.get("/api/dashboard"));
+    assert.deepEqual(empty.totals, { books: 0, pages: 0, photos: 0, places: 0, people: 0, since: null });
+    assert.equal((await fetch(`${t.base}/api/dashboard`)).status, 401);
+  });
+
   test("a member can leave; only the owner deletes the book", async () => {
     const book = await j(await mara.get(`/api/books/${bookId}`));
     const joshId = book.members[1].id;

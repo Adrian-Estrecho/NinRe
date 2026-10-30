@@ -2,7 +2,7 @@ import { existsSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
 import express, { type ErrorRequestHandler, type RequestHandler } from "express";
 import multer from "multer";
-import { createAuth, sameOrigin } from "./auth.ts";
+import { createAuth, sameOrigin, userOf } from "./auth.ts";
 import { openStore } from "./db.ts";
 import { BOOK_ID, PHOTO_FILE, bookDir, removeFiles } from "./files.ts";
 import { testPayments, type Payments } from "./paymongo.ts";
@@ -10,6 +10,7 @@ import { accountRoutes, authRoutes } from "./routes/auth.ts";
 import { billingRoutes, planRoutes, webhookRoute } from "./routes/billing.ts";
 import { bookRoutes, inviteRoutes } from "./routes/books.ts";
 import { HttpError } from "./types.ts";
+import { isCalendarDate } from "./validate.ts";
 
 export interface AppConfig {
   dataDir: string;
@@ -72,6 +73,10 @@ export function createApp(cfg: AppConfig) {
     res.set("Cache-Control", "no-store");
     if (!user) return void res.json({ user: null });
     res.json({ user, books: store.books.list(user.id), billing: store.billing.state(user.id) });
+  });
+  app.get("/api/dashboard", auth.requireUser, (req, res) => {
+    const today = String(req.query.today ?? "");
+    res.set("Cache-Control", "no-store").json(store.dashboard.get(userOf(res).id, isCalendarDate(today) ? today : new Date().toISOString().slice(0, 10)));
   });
   app.use("/api/invites", inviteRoutes(store, auth.userOf, auth.requireUser));
   app.use("/api/account", auth.requireUser, accountRoutes(store, auth, uploadsDir));

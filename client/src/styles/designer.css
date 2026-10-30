@@ -2,7 +2,7 @@
 .designer { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(320px, .85fr); gap: clamp(18px, 3vw, 40px); align-items: start; }
 .designer-stage {
   position: sticky; top: 84px; min-height: min(640px, 78vh); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px;
-  padding: clamp(28px, 5vw, 56px) 12px 22px; border-radius: 28px;
+  padding: clamp(28px, 5vw, 56px) 12px 22px; border-radius: 4px;
   background:
     radial-gradient(60% 50% at 50% 46%, rgba(255, 255, 255, .7), transparent 70%),
     linear-gradient(var(--bg-grid) 1px, transparent 1px), linear-gradient(90deg, var(--bg-grid) 1px, transparent 1px), var(--card-2);
@@ -96,7 +96,7 @@
 .ps-lined { background: linear-gradient(transparent 11px, rgba(47, 128, 237, .3) 11px) 0 0 / 100% 12px, #fbfaf5; }
 
 /* Placing stickers */
-.tray { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; padding: 10px; border-radius: 18px; background: var(--card-2); border: 1px dashed var(--line-2); }
+.tray { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; padding: 10px; border-radius: 6px; background: var(--card-2); border: 1px dashed var(--line-2); }
 .tray-item { aspect-ratio: 1; border: 0; background: none; padding: 4px; border-radius: 12px; touch-action: none; cursor: grab; transition: transform .2s var(--ease-out), background .15s; }
 .tray-item:hover { background: var(--card); transform: rotate(-6deg) scale(1.08); }
 .tray-item:active { cursor: grabbing; }

@@ -1,0 +1,29 @@
+/* The icon dock: app tiles on a frosted tray. Kept for the mobile app; the website doesn't render it. */
+.dock {
+  position: relative; z-index: 4; display: flex; gap: 10px; padding: 9px; border-radius: 20px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, .26), rgba(255, 255, 255, .1));
+  border: 1px solid rgba(255, 255, 255, .5);
+  -webkit-backdrop-filter: blur(16px) saturate(1.35); backdrop-filter: blur(16px) saturate(1.35);
+  box-shadow: 0 14px 34px -16px rgba(8, 30, 60, .5), inset 0 1px 0 rgba(255, 255, 255, .45);
+}
+.dock-app {
+  position: relative; display: grid; place-items: center; width: 52px; height: 52px; border-radius: 15px; color: #fff;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .5), inset 0 -3px 0 rgba(0, 0, 0, .12), 0 6px 12px -6px rgba(0, 0, 0, .4);
+  transition: transform .35s var(--ease-out);
+}
+.dock-app svg { width: 25px; height: 25px; }
+.dock-app.azure { background: linear-gradient(160deg, #6fb0ff, #2f80ed); }
+.dock-app.coral { background: linear-gradient(160deg, #ff9ab0, #ff4d70); }
+.dock-app.sun { background: linear-gradient(160deg, #ffe680, #ffc21f); color: #14202b; }
+.dock-app.violet { background: linear-gradient(160deg, #b7a5ff, #7c5cff); }
+.dock-app:hover, .dock-app:focus-visible { transform: translateY(-7px) scale(1.08); }
+.dock-app::after {
+  content: attr(data-label); position: absolute; bottom: calc(100% + 12px); left: 50%; transform: translate(-50%, 4px); opacity: 0; pointer-events: none;
+  background: #14202b; color: #fff; font-size: .76rem; font-weight: 700; padding: 4px 9px; border-radius: 7px; white-space: nowrap; transition: opacity .15s, transform .2s;
+}
+.dock-app:hover::after, .dock-app:focus-visible::after { opacity: 1; transform: translate(-50%, 0); }
+
+@media (max-width: 760px) {
+  .dock-app { width: 46px; height: 46px; border-radius: 13px; }
+  .dock-app svg { width: 22px; height: 22px; }
+}

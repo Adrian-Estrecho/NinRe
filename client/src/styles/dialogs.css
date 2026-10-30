@@ -52,7 +52,7 @@
 .note footer { margin-top: auto; display: flex; justify-content: space-between; align-items: center; gap: 6px; font-size: .76rem; font-weight: 650; color: #4c5458; }
 .note footer button { background: none; border: 0; padding: 2px 4px; font-size: .76rem; font-weight: 650; color: #4c5458; text-decoration: underline; text-underline-offset: .2em; }
 .note footer button:hover { color: #14202b; }
-.note-form { width: min(100%, 300px); background: var(--card); color: var(--ink); border: 1px dashed var(--line-2); padding: 12px; border-radius: 10px; display: flex; flex-direction: column; gap: 10px; transform: none; }
+.note-form { width: min(100%, 300px); background: var(--card); color: var(--ink); border: 1px dashed var(--line-2); padding: 12px; border-radius: 4px; display: flex; flex-direction: column; gap: 10px; transform: none; }
 .note-form textarea { width: 100%; min-height: 76px; resize: vertical; border: 1px solid var(--line-2); border-radius: 8px; padding: 8px 10px; background: var(--card); font-family: var(--f-hand); font-size: 1.2rem; line-height: 1.2; }
 .note-form textarea:focus { outline: none; border-color: var(--azure); }
 .note-colors { display: flex; gap: 6px; align-items: center; }
@@ -64,9 +64,9 @@
 .note-form .row { display: flex; gap: 8px; justify-content: space-between; align-items: center; }
 
 /* The page form */
-.sheet { max-width: 780px; margin: 0 auto; background: var(--card); border-radius: 22px; padding: clamp(20px, 4vw, 38px); box-shadow: 0 40px 70px -30px rgba(0, 0, 0, .55); display: flex; flex-direction: column; gap: 20px; animation: rise .45s var(--ease-out); }
+.sheet { max-width: 780px; margin: 0 auto; background: var(--card); border-radius: 4px; padding: clamp(20px, 4vw, 38px); box-shadow: 0 40px 70px -30px rgba(0, 0, 0, .55); display: flex; flex-direction: column; gap: 20px; animation: rise .45s var(--ease-out); }
 .sheet.narrow { max-width: 560px; }
-.sheet h2 { font-size: 1.7rem; font-weight: 800; letter-spacing: -.02em; margin: 0; line-height: 1.1; }
+.sheet h2 { font-size: clamp(1.5rem, 3vw, 1.9rem); font-weight: 870; text-transform: uppercase; font-stretch: 112%; letter-spacing: -.03em; margin: 0; line-height: .95; }
 .sheet .sub { margin: -12px 0 0; color: var(--ink-soft); }
 .chips { display: flex; flex-wrap: wrap; gap: 6px; }
 .chips label { cursor: pointer; position: relative; }
@@ -78,13 +78,13 @@
 .pinline { display: flex; gap: 10px; align-items: center; }
 .pinline input:first-child { flex: 1; }
 .code-in { width: 5.4em !important; flex: none; text-transform: uppercase; font-family: var(--f-mono) !important; letter-spacing: .14em; text-align: center; }
-.sugg { position: absolute; left: 0; right: 0; top: 100%; z-index: 4; background: var(--card); border: 1px solid var(--line-2); border-radius: 12px; box-shadow: 0 18px 34px -14px var(--shadow); max-height: 260px; overflow: auto; margin: 6px 0 0; padding: 4px; list-style: none; }
+.sugg { position: absolute; left: 0; right: 0; top: 100%; z-index: 4; background: var(--card); border: 1px solid var(--line-2); border-radius: 6px; box-shadow: var(--lift-lg); max-height: 260px; overflow: auto; margin: 6px 0 0; padding: 4px; list-style: none; }
 .sugg li { padding: 9px 11px; border-radius: 8px; cursor: pointer; display: flex; justify-content: space-between; gap: 10px; }
 .sugg li[aria-selected="true"], .sugg li:hover { background: var(--p-sky); color: #14202b; }
 .sugg .region { color: var(--ink-soft); }
 .sugg li:hover .region, .sugg li[aria-selected="true"] .region { color: #4a5762; }
 .sugg small { font-family: var(--f-mono); font-size: .7rem; color: var(--ink-faint); white-space: nowrap; }
-.drop { position: relative; border: 1.5px dashed var(--line-2); border-radius: 14px; padding: 22px; text-align: center; color: var(--ink-soft); background: var(--card-2); transition: background .2s, border-color .2s; }
+.drop { position: relative; border: 1.5px dashed var(--line-2); border-radius: 6px; padding: 22px; text-align: center; color: var(--ink-soft); background: var(--card-2); transition: background .2s, border-color .2s; }
 .drop.over { background: var(--p-sky); border-color: var(--azure); color: #14202b; }
 .drop label { color: var(--azure-ink); font-weight: 650; text-decoration: underline; cursor: pointer; }
 .drop input { position: absolute; opacity: 0; width: 1px; height: 1px; }
@@ -100,7 +100,7 @@
 .pcell .pbar button:hover { color: #c2304d; }
 .pcell .cov { position: absolute; top: 12px; left: 12px; font-size: .68rem; font-weight: 750; letter-spacing: .06em; text-transform: uppercase; background: var(--azure); color: #fff; padding: 2px 7px; border-radius: 99px; }
 .lined {
-  width: 100%; min-height: 240px; border: 1px solid var(--line-2); border-radius: 14px; resize: vertical; font-family: var(--f-body); font-size: 1.05rem; line-height: 2rem; background-color: var(--card);
+  width: 100%; min-height: 240px; border: 1px solid var(--line-2); border-radius: 6px; resize: vertical; font-family: var(--f-body); font-size: 1.05rem; line-height: 2rem; background-color: var(--card);
   background-image: linear-gradient(to bottom, transparent calc(2rem - 1px), var(--rule) calc(2rem - 1px)); background-size: 100% 2rem; background-attachment: local; background-position: 0 10px;
   padding: 10px 14px;
 }

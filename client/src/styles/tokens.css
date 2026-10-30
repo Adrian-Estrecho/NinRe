@@ -1,36 +1,32 @@
 /*
- * NinRe: a window onto a sunny day out. Sky and meadow photographs, grid paper below,
- * pastel stickers with saturated badges, ink type in heavy Archivo, notes in Gochi Hand.
+ * NinRe's signed-in app wears the website's world without its photographs: a white page by day and deep ink by night,
+ * heavy wide Archivo for titles, sun yellow for the one primary action, stamp red for pins, and paper with soft shadows.
+ * Notes and stickers keep their pastel stocks.
  */
 :root {
-  /* App ground: grid paper */
-  --bg: #f6f5f0;
-  --bg-grid: rgba(47, 128, 237, .075);
-  --card: #fffefb;
-  --card-2: #f1efe8;
+  /* App ground: the website's white page */
+  --bg: #ffffff;
+  --card: #fffdf8;
+  --card-2: #f5f3ee;
   --line: rgba(20, 32, 43, .12);
   --line-2: rgba(20, 32, 43, .22);
   --ink: #14202b;
-  --ink-soft: #4a5762;
-  --ink-faint: #737f89;
+  --ink-soft: #46535e;
+  --ink-faint: #5f6b75;
   --rule: rgba(20, 32, 43, .14);
   --veil: rgba(10, 18, 26, .55);
   --shadow: rgba(20, 32, 43, .18);
-  --focus: #2f80ed;
+  --focus: #2257b8;
+  /* Daylight from the top left: paper casts its shadow down and to the right. */
+  --lift: 0 1px 1px rgba(20, 32, 43, .1), 6px 14px 26px -12px rgba(20, 32, 43, .34);
+  --lift-lg: 0 1px 2px rgba(20, 32, 43, .1), 14px 30px 52px -24px rgba(20, 32, 43, .38);
 
-  /* The window */
-  --bezel: #f4f1e8;
-  --sky: #5b95d0;
-  --sky-hi: #a9cdef;
-
-  /* Sticker world */
-  --azure: #2f80ed;
-  --azure-ink: #1b5fbf;
-  --violet: #7c5cff;
-  --coral: #ff5c7c;
+  /* Inks and stocks shared with the website */
+  --azure: #2257b8;
+  --azure-ink: #1d4a9e;
   --sun: #ffd23f;
-  --lime: #d4ef3a;
-  --mint: #3fcf7f;
+  --mint: #2f7a4b;
+  --stock-free: #e2f2e5; --stock-plus: #ffe066; --stock-crew: #ffd8de;
   --p-sky: #dbeeff;
   --p-lilac: #ece6ff;
   --p-blush: #ffe1e8;
@@ -62,10 +58,9 @@
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #0f151b;
-    --bg-grid: rgba(140, 180, 230, .055);
-    --card: #18212a;
-    --card-2: #131b22;
+    --bg: #10161c;
+    --card: #19222b;
+    --card-2: #141b22;
     --line: rgba(220, 232, 244, .12);
     --line-2: rgba(220, 232, 244, .22);
     --ink: #e8edf1;
@@ -74,17 +69,18 @@
     --rule: rgba(220, 232, 244, .13);
     --veil: rgba(3, 6, 9, .72);
     --shadow: rgba(0, 0, 0, .5);
-    --focus: #79b2ff;
+    --focus: #8fb4ff; --azure: #8fb4ff; --azure-ink: #a9c6ff; --mint: #5fbf86;
+    --lift: 0 1px 1px rgba(0, 0, 0, .45), 6px 14px 26px -12px rgba(0, 0, 0, .75);
+    --lift-lg: 0 1px 2px rgba(0, 0, 0, .45), 14px 30px 52px -24px rgba(0, 0, 0, .8);
     --sea: #16252a; --sea-2: #1d3036; --land: #2b2e27; --land-ink: #9a9884; --grat: rgba(170, 200, 200, .12);
     --polaroid: #e6e2d8; --tape: rgba(190, 174, 128, .62);
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --bg: #0f151b;
-  --bg-grid: rgba(140, 180, 230, .055);
-  --card: #18212a;
-  --card-2: #131b22;
+  --bg: #10161c;
+  --card: #19222b;
+  --card-2: #141b22;
   --line: rgba(220, 232, 244, .12);
   --line-2: rgba(220, 232, 244, .22);
   --ink: #e8edf1;
@@ -93,7 +89,9 @@
   --rule: rgba(220, 232, 244, .13);
   --veil: rgba(3, 6, 9, .72);
   --shadow: rgba(0, 0, 0, .5);
-  --focus: #79b2ff;
+  --focus: #8fb4ff; --azure: #8fb4ff; --azure-ink: #a9c6ff; --mint: #5fbf86;
+  --lift: 0 1px 1px rgba(0, 0, 0, .45), 6px 14px 26px -12px rgba(0, 0, 0, .75);
+  --lift-lg: 0 1px 2px rgba(0, 0, 0, .45), 14px 30px 52px -24px rgba(0, 0, 0, .8);
   --sea: #16252a; --sea-2: #1d3036; --land: #2b2e27; --land-ink: #9a9884; --grat: rgba(170, 200, 200, .12);
   --polaroid: #e6e2d8; --tape: rgba(190, 174, 128, .62);
   color-scheme: dark;

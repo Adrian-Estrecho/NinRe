@@ -72,6 +72,40 @@ export interface BookSummary {
   updatedAt: number;
 }
 
+/** One place across every book a person writes in, gathered from the pages set there. */
+export interface PlaceVisit {
+  name: string;
+  region: string;
+  lat: number | null;
+  lng: number | null;
+  pages: number;
+  first: string;
+  last: string;
+  /** The latest page set here, which a tap opens. */
+  bookId: string;
+  pageId: string;
+}
+
+/** A page from this day (or this week) in an earlier year. */
+export interface Memory {
+  bookId: string;
+  bookTitle: string;
+  pageId: string;
+  title: string;
+  date: string;
+  kind: string;
+  place: { name: string; region: string };
+  years: number;
+  photo: { url: string; caption: string } | null;
+}
+
+/** What the signed-in home shows, across every book the person writes in. */
+export interface Dashboard {
+  totals: { books: number; pages: number; photos: number; places: number; people: number; since: string | null };
+  places: PlaceVisit[];
+  onThisDay: { match: "day" | "week" | "none"; pages: Memory[] };
+}
+
 export interface Book {
   id: string;
   cover: Cover;

@@ -160,7 +160,7 @@ export function Account() {
               <b>{chosen ? peso(chosen.price * months) : "…"}</b>
             </p>
             {payError && <p className="err" role="alert">{payError}</p>}
-            <button type="button" className="btn" onClick={checkout} disabled={!chosen || paying}>
+            <button type="button" className="btn sun" onClick={checkout} disabled={!chosen || paying}>
               {paying ? "Opening checkout…" : `Pay for ${chosen?.name ?? "the plan"}`}
             </button>
           </div>

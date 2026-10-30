@@ -94,7 +94,7 @@ export function NewBookDialog({ onClose, onCreated }: { onClose: () => void; onC
         )}
         <div className="panel-foot">
           <button type="button" className="btn line" onClick={onClose} disabled={busy}>Cancel</button>
-          <button type="submit" className="btn" disabled={busy}>{busy ? "Making the book…" : "Make the book"}</button>
+          <button type="submit" className="btn sun" disabled={busy}>{busy ? "Making the book…" : "Make the book"}</button>
         </div>
       </form>
     </Dialog>

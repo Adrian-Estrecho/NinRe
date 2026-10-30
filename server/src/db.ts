@@ -4,8 +4,8 @@ import { DEFAULT_DESIGN, readDesign, type Design } from "./design.ts";
 import { PLANS, addMonths, isPlanId, type PlanId } from "./plans.ts";
 import {
   HttpError,
-  type BillingState, type Book, type BookSummary, type Cover, type Member, type Note, type Page, type PageInput,
-  type Payment, type Person, type Photo, type Role, type Subscription, type User,
+  type BillingState, type Book, type BookSummary, type Cover, type Dashboard, type Member, type Memory, type Note, type Page, type PageInput,
+  type Payment, type Person, type Photo, type PlaceVisit, type Role, type Subscription, type User,
 } from "./types.ts";
 
 export const DEFAULT_TITLE = "Our Book of Travels";
@@ -607,6 +607,75 @@ export function openStore(file: string) {
     },
   };
 
+  /* ---------- The signed-in home ---------- */
+
+  const dashboard = {
+    /**
+     * Totals, every place, and the pages from this day in earlier years, across every book the person writes in.
+     * `today` is the person's own calendar date, because the server can't know their time zone.
+     */
+    get(userId: string, today: string): Dashboard {
+      const titles = new Map(all("SELECT b.id, b.title FROM books b JOIN members m ON m.book_id = b.id AND m.user_id = ?", userId).map((r) => [str(r.id), str(r.title)]));
+      const rows = all(`SELECT p.id, p.book_id, p.title, p.date, p.kind, p.place_name, p.place_region, p.lat, p.lng
+        FROM pages p JOIN members m ON m.book_id = p.book_id AND m.user_id = ? ORDER BY p.date, p.created_at`, userId);
+
+      // Pages count as one place when they share a pin (to about a kilometre), or the same name when unpinned.
+      const places = new Map<string, PlaceVisit>();
+      for (const r of rows) {
+        const lat = r.lat == null ? null : Number(r.lat), lng = r.lng == null ? null : Number(r.lng);
+        const key = lat != null && lng != null ? `${lat.toFixed(2)},${lng.toFixed(2)}` : str(r.place_name).trim().toLowerCase();
+        const date = str(r.date), bookId = str(r.book_id), pageId = str(r.id);
+        const seen = places.get(key);
+        if (seen) Object.assign(seen, { pages: seen.pages + 1, last: date, bookId, pageId });
+        else places.set(key, { name: str(r.place_name), region: str(r.place_region), lat, lng, pages: 1, first: date, last: date, bookId, pageId });
+      }
+
+      // This day in earlier years; failing that, within three days of it.
+      const [ty, tm, td] = today.split("-").map(Number);
+      const away = (date: string) => {
+        const [, m, d] = date.split("-").map(Number);
+        const days = Math.round((Date.UTC(ty, m - 1, d) - Date.UTC(ty, tm - 1, td)) / 864e5);
+        return days > 182 ? days - 365 : days < -182 ? days + 365 : days;
+      };
+      const earlier = rows.filter((r) => Number(str(r.date).slice(0, 4)) < ty);
+      let match: Dashboard["onThisDay"]["match"] = "day";
+      let picked = earlier.filter((r) => str(r.date).slice(5) === today.slice(5));
+      if (!picked.length) {
+        match = "week";
+        picked = earlier.filter((r) => Math.abs(away(str(r.date))) <= 3);
+      }
+      if (!picked.length) match = "none";
+      const memories = picked.reverse().slice(0, 6).map((r): Memory => {
+        const ph = one("SELECT * FROM photos WHERE page_id = ? ORDER BY position LIMIT 1", str(r.id));
+        const photo = ph && toPhoto(ph);
+        return {
+          bookId: str(r.book_id),
+          bookTitle: titles.get(str(r.book_id)) ?? "",
+          pageId: str(r.id),
+          title: str(r.title),
+          date: str(r.date),
+          kind: str(r.kind),
+          place: { name: str(r.place_name), region: str(r.place_region) },
+          years: ty - Number(str(r.date).slice(0, 4)),
+          photo: photo ? { url: photo.url, caption: photo.caption } : null,
+        };
+      });
+
+      return {
+        totals: {
+          books: titles.size,
+          pages: rows.length,
+          photos: count("SELECT COUNT(*) n FROM photos ph JOIN members m ON m.book_id = ph.book_id AND m.user_id = ? WHERE ph.page_id IS NOT NULL", userId),
+          places: places.size,
+          people: count("SELECT COUNT(DISTINCT o.user_id) n FROM members m JOIN members o ON o.book_id = m.book_id WHERE m.user_id = ? AND o.user_id <> ?", userId, userId),
+          since: rows.length ? str(rows[0].date) : null,
+        },
+        places: [...places.values()].sort((a, b) => b.last.localeCompare(a.last)),
+        onThisDay: { match, pages: memories },
+      };
+    },
+  };
+
   return {
     users,
     sessions,
@@ -615,6 +684,7 @@ export function openStore(file: string) {
     invites,
     pages,
     notes,
+    dashboard,
     close() {
       db.close();
     },

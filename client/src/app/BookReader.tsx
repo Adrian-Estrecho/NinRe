@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState, type KeyboardEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import { ApiError, api, errorText } from "../api";
 import { bookStyle, normalizeDesign } from "../book/design";
 import { joinNames } from "../components/Avatar";
@@ -81,6 +81,17 @@ export function BookReader({ bookId }: { bookId: string }) {
     history.replaceState(null, "", `${location.pathname}${location.search}#${view}`);
   }, [view]);
   useEffect(() => prefs.set("sort", sort), [sort]);
+
+  // Arriving from the home page: open the page that was tapped, or start a new one, once the fresh copy is in.
+  const arrival = useRef({ page: query.get("page"), add: query.get("add") === "1" });
+  useEffect(() => {
+    const a = arrival.current;
+    if ((!a.page && !a.add) || conn !== "online" || !book) return;
+    if (a.page && book.pages.some((p) => p.id === a.page)) setOpen({ id: a.page, photo: 0 });
+    if (a.add) setForm({ page: null });
+    arrival.current = { page: null, add: false };
+    history.replaceState(null, "", location.pathname + location.hash);
+  }, [book, conn]);
   useEffect(() => {
     const follow = () => { const h = location.hash.slice(1); if (isView(h)) setView(h); };
     window.addEventListener("hashchange", follow);
@@ -115,7 +126,7 @@ export function BookReader({ bookId }: { bookId: string }) {
       <div className="lib-empty">
         <h2>This book isn't on your shelf</h2>
         <p>It may have been deleted, or you were removed from it. If someone sent you an invite link, open that link again.</p>
-        <Link href="/app" className="btn">Back to your books</Link>
+        <Link href="/app" className="btn">Back home</Link>
       </div>
     );
   }
@@ -183,7 +194,7 @@ export function BookReader({ bookId }: { bookId: string }) {
           ))}
         </div>
         {canEdit && (
-          <button className="btn" type="button" onClick={() => setForm({ page: null })} title="New page (N)">
+          <button className="btn sun" type="button" onClick={() => setForm({ page: null })} title="New page (N)">
             <Icon name="plus" /><span className="long">New </span>page
           </button>
         )}

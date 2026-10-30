@@ -3,7 +3,7 @@ import { Account } from "./app/Account";
 import { AppShell } from "./app/AppShell";
 import { BookReader } from "./app/BookReader";
 import { Designer } from "./app/Designer";
-import { Library } from "./app/Library";
+import { Home } from "./app/Home";
 import { TestCheckout } from "./app/TestCheckout";
 import { AuthPage } from "./auth/AuthPage";
 import { JoinPage } from "./auth/JoinPage";
@@ -61,7 +61,7 @@ export function App() {
   if (path === "/signup") return <GuestOnly><AuthPage mode="signup" /></GuestOnly>;
   if ((m = match("/join/:code", path))) return <JoinPage code={m.code} />;
   if ((m = match("/checkout/test/:id", path))) return <NeedsAccount><TestCheckout id={m.id} /></NeedsAccount>;
-  if (path === "/app") return <NeedsAccount><AppShell><Library /></AppShell></NeedsAccount>;
+  if (path === "/app") return <NeedsAccount><AppShell><Home /></AppShell></NeedsAccount>;
   if (path === "/app/account") return <NeedsAccount><AppShell><Account /></AppShell></NeedsAccount>;
   if ((m = match("/app/book/:id/design", path))) return <NeedsAccount><AppShell wide><Designer key={m.id} bookId={m.id} /></AppShell></NeedsAccount>;
   if ((m = match("/app/book/:id", path))) return <NeedsAccount><AppShell><BookReader key={m.id} bookId={m.id} /></AppShell></NeedsAccount>;

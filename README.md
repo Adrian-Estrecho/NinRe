@@ -2,7 +2,7 @@
 
 A travel diary for couples and friends, built as a book. Everyone you invite writes in the same book. Each page holds photos, a pin on the book's own atlas, the date, the story of the day, a postmark, and short notes from each person. Pages gather into chapters by year. The book's cover and paper can be designed: cloth, foil, type, emblem, stickers, paper, photo style and ink.
 
-![The NinRe website: a blue travel desk with the headline "The places we've been, bound in one book", the sample book open in the middle, and a luggage tag, boarding pass, airmail envelope and snapshots around it](docs/landing.png)
+![The NinRe website: a sunny Batanes hillside with the headline "The places we've been, bound in one book", the sample book open in the middle, polaroids, a boarding pass and a luggage tag at the edges, and the photo fading into a white page below](docs/landing.png)
 
 ## What's inside
 

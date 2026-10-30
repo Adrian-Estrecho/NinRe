@@ -1,6 +1,6 @@
 import type { Design } from "./book/design";
 import type {
-  Allowance, Billing, Book, Cover, Invite, InvitePreview, Me, Member, Page, PageDraft, Payment, Photo, Plan, Plans, PlanId, User,
+  Allowance, Billing, Book, Cover, Dashboard, Invite, InvitePreview, Me, Member, Page, PageDraft, Payment, Photo, Plan, Plans, PlanId, User,
 } from "./types";
 
 export class ApiError extends Error {
@@ -44,6 +44,9 @@ export const api = {
   signup: (name: string, email: string, password: string) => call<{ user: User }>("/api/auth/signup", send("POST", { name, email, password })),
   login: (email: string, password: string) => call<{ user: User }>("/api/auth/login", send("POST", { email, password })),
   logout: () => call<void>("/api/auth/logout", send("POST")),
+
+  /** The home page's totals, places and memories. `today` is the person's own date, YYYY-MM-DD. */
+  dashboard: (today: string) => call<Dashboard>(`/api/dashboard?today=${encodeURIComponent(today)}`),
 
   rename: (name: string) => call<{ user: User }>("/api/account", send("PUT", { name })),
   changePassword: (current: string, next: string) => call<void>("/api/account/password", send("PUT", { current, next })),

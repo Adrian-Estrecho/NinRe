@@ -40,7 +40,7 @@ export function BookHeader({ book, coverPhotoUrl, stats, canEdit, onEdit, onPeop
         <Book3D design={book.design} title={cover.title} subtitle={names} photoUrl={coverPhotoUrl} width="clamp(150px, 19vw, 232px)" />
       </div>
       <div className="bhead-meta">
-        <nav className="crumbs" aria-label="Breadcrumb"><Link href="/app">Your books</Link></nav>
+        <nav className="crumbs" aria-label="Breadcrumb"><Link href="/app">Home</Link></nav>
         <h1 className="bhead-title">{cover.title}</h1>
         <p className="bhead-names">{names}</p>
         <p className="bhead-since">

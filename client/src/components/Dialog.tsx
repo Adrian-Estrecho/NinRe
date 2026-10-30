@@ -44,7 +44,8 @@ export function Dialog({ onRequestClose, label, labelledBy, closeButton, onKeyDo
         ask.current(false);
       }}
       onClose={() => {
-        if (mounted.current) ask.current(true);
+        // A close event can arrive late, after the dialog was opened again (React runs effects twice in development); only a dialog that is really shut counts.
+        if (mounted.current && !ref.current?.open) ask.current(true);
       }}
       onClick={(e) => {
         if (e.target === e.currentTarget) ask.current(false);

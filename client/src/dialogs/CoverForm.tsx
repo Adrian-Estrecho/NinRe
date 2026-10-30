@@ -63,7 +63,7 @@ export function CoverForm({ bookId, cover, namesHint, onClose, onSaved }: Props)
         {error && <p className="err" role="alert">{error}</p>}
         <div className="panel-foot">
           <button type="button" className="btn line" onClick={onClose} disabled={busy}>Cancel</button>
-          <button type="submit" className="btn" disabled={busy}>{busy ? "Saving…" : "Save cover"}</button>
+          <button type="submit" className="btn sun" disabled={busy}>{busy ? "Saving…" : "Save cover"}</button>
         </div>
       </form>
     </Dialog>

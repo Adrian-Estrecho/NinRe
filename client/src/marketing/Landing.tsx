@@ -3,7 +3,7 @@ import { api } from "../api";
 import { CoverDesigner } from "../book/CoverDesigner";
 import { bookStyle, normalizeDesign, type Design } from "../book/design";
 import { StickerArt } from "../book/stickers";
-import { Icon, type IconName } from "../components/Icon";
+import { Icon } from "../components/Icon";
 import { PageSpread } from "../dialogs/PageSpread";
 import { isPinned, shelve } from "../lib/book";
 import { fmtShort, peso } from "../lib/format";
@@ -13,7 +13,7 @@ import { MapDefs } from "../map/MapDefs";
 import { Link, navigate, useTitle } from "../router";
 import { useSession } from "../session";
 import type { Plan } from "../types";
-import { BoardingStub, Envelope, InkStamp, LuggageTag, Snapshot, Tape, type Ink } from "./Ephemera";
+import { BoardingStub, Envelope, LuggageTag, Snapshot, Tape } from "./Ephemera";
 import { FlipBook, PhotoPage, StoryPage } from "./FlipBook";
 
 const FALLBACK_PLANS: Plan[] = [
@@ -22,12 +22,16 @@ const FALLBACK_PLANS: Plan[] = [
   { id: "crew", name: "Crew", price: 44900, books: null, members: 20, photos: 25000 },
 ];
 
-/** The cover the sample book wears until the visitor designs their own: terracotta linen and gold, warm against the blue table. */
+/** The cover the sample book wears until the visitor designs their own: terracotta linen and gold, warm against the green hills. */
 const DESK_DESIGN: Design = normalizeDesign({
   cloth: "#b5532f", texture: "linen", foil: "gold", titleFont: "classic", layout: "classic", emblem: "compass", paper: "cream", photo: "polaroid", accent: "red",
 });
 
 const PEOPLE = "Mara & Josh";
+
+/** A camera roll from a few trips, as a strip of 35mm frames. The middle frame, Taal, is the photo on the sample book's first page. */
+const ROLL = ["/samples/siargao-palms.jpg", "/img/lake-braies.jpg", "/img/ha-long.jpg", "/samples/taal.jpg", "/samples/kyoto-torii.jpg", "/samples/fort-santiago.jpg", "/samples/siargao-road.jpg"];
+const PICK = 3;
 
 type Vars = CSSProperties & Record<`--${string}`, string | number>;
 
@@ -53,10 +57,11 @@ export function Landing() {
     api.plans().then((p) => setPlans(p.plans)).catch(() => {});
   }, []);
 
-  // Paper settles onto the table as it scrolls into view.
+  // Paper settles and photographs develop as they scroll into view.
   useEffect(() => {
-    const els = root.current?.querySelectorAll<HTMLElement>("[data-settle]");
-    if (!els?.length || !("IntersectionObserver" in window)) return;
+    const els = root.current?.querySelectorAll<HTMLElement>("[data-settle], [data-develop]");
+    if (!els?.length) return;
+    if (!("IntersectionObserver" in window)) { els.forEach((el) => el.classList.add("in")); return; }
     const io = new IntersectionObserver((entries) => {
       for (const e of entries) if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); }
     }, { rootMargin: "0px 0px -10% 0px" });
@@ -88,17 +93,18 @@ export function Landing() {
     <div className="landing" ref={root}>
       {(mapOn || open) && <MapDefs />}
 
-      {/* ---------- A day out in Batanes, and the book on top of it ---------- */}
+      {/* ---------- A morning in Batanes, the book on it, fading into the white page ---------- */}
       <header className="hero" id="top">
-        <img className="hero-photo" src="/img/hero.jpg" alt="" fetchPriority="high" decoding="async" />
-        <div className="hero-shade" aria-hidden="true" />
+        <div className="hero-art" aria-hidden="true">
+          <img className="hero-photo" src="/img/hero.jpg" alt="" fetchPriority="high" decoding="async" />
+        </div>
         <nav className="topnav" aria-label="Main">
+          <Link href="/" className="wordmark" aria-label="NinRe home">NinRe</Link>
           <div className="topnav-links">
             <a href="#pages">Pages</a>
             <a href="#design">Design</a>
-            <a href="#pricing">Pricing</a>
+            <a href="#pricing">Plans</a>
           </div>
-          <Link href="/" className="wordmark" aria-label="NinRe home">NinRe</Link>
           <div className="topnav-end">
             {me ? (
               <Link href="/app" className="btn small sky-btn">Your books</Link>
@@ -112,13 +118,10 @@ export function Landing() {
         </nav>
 
         <div className="desk-things" aria-hidden="true">
-          <LuggageTag className="h-tag" lines={[["Name", PEOPLE], ["Bound for", siargao.place.name]]} />
+          <Snapshot className="h-snap-l" src={tagaytay.photos[1].url} caption={tagaytay.photos[1].caption} />
           <BoardingStub className="h-stub" from="MNL" to="IAO" date={fmtShort(siargao.date)} seats="14A · 14B" />
-          <Envelope className="h-env" postmark={list[1]}>
-            <p className="env-to">{PEOPLE}<span>the long way home</span></p>
-          </Envelope>
-          <Snapshot className="h-snap" src={kyoto.photos[0].url} caption={kyoto.photos[0].caption} />
-          <Snapshot className="h-snap-2" src={tagaytay.photos[1].url} caption={tagaytay.photos[1].caption} />
+          <LuggageTag className="h-tag" lines={[["Name", PEOPLE], ["Bound for", siargao.place.name]]} />
+          <Snapshot className="h-snap-r" src={kyoto.photos[0].url} caption={kyoto.photos[0].caption} />
         </div>
 
         <div className="hero-copy">
@@ -128,46 +131,53 @@ export function Landing() {
 
         <FlipBook className="hero-book" design={design} title={shownTitle} people={PEOPLE} pages={list} onRead={(id) => setOpen({ id, photo: 0 })} onStart={() => start()} />
 
-        <form className="glass start-form" onSubmit={start}>
+        <form className="start-form" onSubmit={start}>
           <label htmlFor="hero-title" className="sr-only">Name your book</label>
           <input id="hero-title" type="text" maxLength={60} placeholder="Name your book" value={title} onChange={(e) => setTitle(e.target.value)} autoComplete="off" />
-          <button type="submit" className="btn">Start free</button>
+          <button type="submit" className="btn sun">Start free</button>
         </form>
         <p className="hero-fine">Free for one book and two people. No card needed.</p>
-
-        <nav className="dock glass" aria-label="Jump to">
-          {([["pin", "The map", "coral", "#pages"], ["camera", "What’s on a page", "azure", "#inside"], ["palette", "Design a cover", "violet", "#design"], ["people", "Plans", "sun", "#pricing"]] as [IconName, string, string, string][]).map(([icon, label, tone, href]) => (
-            <a key={href} href={href} className={`dock-app ${tone}`} aria-label={label} data-label={label}>
-              <Icon name={icon} />
-            </a>
-          ))}
-        </nav>
       </header>
 
-      {/* ---------- One book: a passport page of stamps ---------- */}
-      <section className="sec about" id="about" aria-labelledby="about-h">
+      {/* ---------- For the two of you, or the whole barkada: two trips dissolving into each other ---------- */}
+      <section className="sec together" id="about" aria-labelledby="about-h">
         <div className="sec-head">
           <h2 id="about-h" className="sec-title">One book.<br />Everyone writes in it.</h2>
-          <p className="sec-lede">Make a book for the two of you, or for the whole barkada. Everyone you invite adds pages, photos and notes to the same book. Read it back in chapters, on a map, or as one long album.</p>
+        </div>
+        <div className="together-photos">
+          <figure className="fade-photo two" data-develop>
+            <img src="/img/couple-cappadocia.jpg" alt="A couple in Cappadocia at dawn: she watches the hot-air balloons rise while he photographs them." loading="lazy" decoding="async" />
+            <figcaption>for the two of you…</figcaption>
+          </figure>
+          <figure className="fade-photo crew" data-develop>
+            <img src="/img/friends-dolomites.jpg" alt="Four friends with backpacks laughing together under the peaks of the Dolomites." loading="lazy" decoding="async" />
+            <figcaption>…or the whole barkada</figcaption>
+          </figure>
+        </div>
+        <div className="sec-foot">
+          <p className="sec-lede">Everyone you invite adds pages, photos and notes to the same book. Read it back in chapters, on a map, or as one long album.</p>
           <button type="button" className="btn sun" onClick={() => start()}>Start a book</button>
         </div>
-        <div className="passport" data-settle>
-          {[0, 2].map((from, side) => (
-            <div key={side} className="passport-page">
-              {([
-                ["round", "blue", "12", "photos on a page", "every page", "Resized on your phone before they upload, so even long trips stay quick to open."],
-                ["rect", "red", "3", "ways to read it", "chapters · atlas · album", "Chapters by year, an atlas of numbered pins, and an album of every photo."],
-                ["octagon", "green", "20", "people in one book", "on crew", "On Crew. Free fits two of you, and Plus fits six."],
-                ["oval", "plum", "₱0", "to start", "free for good", "One book for two people, free for as long as you like."],
-              ] as [Parameters<typeof InkStamp>[0]["shape"], Ink, string, string, string, string][]).slice(from, from + 2).map(([shape, ink, big, top, foot, text], i) => (
-                <div key={top} className="entry" style={{ "--r": `${[-8, 6, 5, -7][from + i]}deg` } as Vars}>
-                  <InkStamp shape={shape} ink={ink} big={big} top={top} foot={foot} />
-                  <p>{text}</p>
-                </div>
-              ))}
-              <span className="passport-n" aria-hidden="true">{14 + side}</span>
-            </div>
-          ))}
+
+        {/* A camera roll from a few trips; the frame ringed in grease pencil is the one that went on the sample book's first page. */}
+        <div className="roll" data-settle data-develop aria-hidden="true">
+          <ol className="roll-strip">
+            {ROLL.map((src, i) => (
+              <li key={src} className={`roll-frame${i === PICK ? " pick" : ""}`} style={{ "--i": Math.abs(i - PICK) } as Vars}>
+                <span className="roll-print">{i === 0 ? "NINRE 400" : `▸ ${i + 11}`}</span>
+                <img src={src} alt="" loading="lazy" decoding="async" draggable={false} />
+                <span className="roll-print foot">{`${i + 11}A`}</span>
+                {i === PICK && (
+                  <>
+                    <svg className="roll-ring" viewBox="0 0 200 140" preserveAspectRatio="none" focusable="false">
+                      <path d="M38 34C74 8 160 10 186 52c22 36-24 74-92 76C34 130 6 104 14 70 20 44 52 26 98 20" />
+                    </svg>
+                    <span className="roll-note">this one goes on the page</span>
+                  </>
+                )}
+              </li>
+            ))}
+          </ol>
         </div>
       </section>
 
@@ -178,6 +188,7 @@ export function Landing() {
           <p className="sec-lede">Every date, weekend away and long trip becomes a page, and every page lands on the book’s own map. These four are from a sample book. Open one to read it like the real thing.</p>
         </div>
         <div className="atlas-desk" ref={atlasRef}>
+          <img className="atlas-photo" src="/img/aerial-coast.jpg" alt="" loading="lazy" decoding="async" />
           <div className="map-sheet folded" data-settle style={{ "--r": "-1deg" } as Vars}>
             {mapOn ? <AtlasMap pins={pins} route interactive={false} controls={false} label={`Map of the sample book: ${list.map((p) => p.place.name).join(", ")}`} /> : <div className="amap" />}
             <svg className="compass" viewBox="-30 -38 60 68" aria-hidden="true">
@@ -198,6 +209,17 @@ export function Landing() {
               <span className="atlas-pol-meta"><b>{p.title}</b>{p.place.name} · {fmtShort(p.date)}</span>
             </button>
           ))}
+        </div>
+      </section>
+
+      {/* ---------- What goes on a page: one page, with its parts marked ---------- */}
+      <section className="sec inside" id="inside" aria-labelledby="inside-h">
+        <div className="inside-grid">
+          <div className="inside-head">
+            <h2 id="inside-h" className="sec-title left">What goes<br />on a page</h2>
+            <p className="sec-lede left">Five things, every time. Tap one to see where it sits on the page.</p>
+          </div>
+          <Inside page={siargao} design={design} />
         </div>
       </section>
 
@@ -233,56 +255,48 @@ export function Landing() {
         </div>
       </section>
 
-      {/* ---------- What goes on a page: one page, with its parts marked ---------- */}
-      <section className="sec inside" id="inside" aria-labelledby="inside-h">
-        <div className="inside-grid">
-          <div className="inside-head">
-            <h2 id="inside-h" className="sec-title left">What goes<br />on a page</h2>
-            <p className="sec-lede left">Five things, every time. Tap one to see where it sits on the page.</p>
-          </div>
-          <Inside page={siargao} design={design} />
-        </div>
-      </section>
-
-      {/* ---------- Plans, as boarding passes ---------- */}
+      {/* ---------- Plans, as boarding passes above the clouds ---------- */}
       <section className="sec pricing" id="pricing" aria-labelledby="pricing-h">
         <div className="sec-head">
           <h2 id="pricing-h" className="sec-title">Plans for two,<br />or twenty</h2>
           <p className="sec-lede">Prices in pesos. Pay for 1, 6 or 12 months at a time through PayMongo, with card, GCash or Maya. Nothing renews by itself.</p>
         </div>
-        <div className="passes">
-          {plans.map((p, i) => (
-            <article key={p.id} className={`pass pass-${p.id}`} data-settle style={{ "--r": `${[-1.2, 0, 1.2][i] ?? 0}deg`, "--i": i } as Vars} aria-labelledby={`plan-${p.id}`}>
-              {p.id === "plus" && <span className="pass-star" aria-hidden="true"><StickerArt kind="star" /></span>}
-              <div className="pass-top">
-                <header className="pass-head">
-                  <h3 id={`plan-${p.id}`}>{p.name}</h3>
-                  <svg className="pass-plane" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M2.5 13.2 21 7.5c1-.3 1.6.9.8 1.5L9.4 16.6l-1.2 4.1-2-.6.6-3.4-4.6-1.8c-.9-.3-.8-1.5.3-1.7Z" fill="currentColor" /></svg>
-                </header>
-                <dl className="pass-fields">
-                  <div><dt>Books</dt><dd>{p.books == null ? "As many as you like" : p.books === 1 ? "1 book" : `${p.books} books`}</dd></div>
-                  <div><dt>People per book</dt><dd>Up to {p.members}</dd></div>
-                  <div><dt>Photos</dt><dd>{p.photos.toLocaleString("en-PH")}</dd></div>
-                </dl>
-              </div>
-              <div className="pass-stub">
-                <p className="price"><b>{p.price ? peso(p.price) : "₱0"}</b><span>{p.price ? "a month" : "always"}</span></p>
-                <button type="button" className={`btn ${p.id === "plus" ? "" : "line"}`} onClick={() => { keepForSignup(title, design); navigate(me ? (p.price ? "/app/account" : "/app") : `/signup${p.price ? `?plan=${p.id}` : ""}`); }}>
-                  {p.price ? `Choose ${p.name}` : "Start free"}
-                </button>
-                <span className="barcode" aria-hidden="true" />
-              </div>
-            </article>
-          ))}
+        <div className="sky">
+          <img className="sky-photo" src="/img/wing-clouds.jpg" alt="" loading="lazy" decoding="async" />
+          <div className="passes">
+            {plans.map((p, i) => (
+              <article key={p.id} className={`pass pass-${p.id}`} data-settle style={{ "--r": `${[-1.2, 0, 1.2][i] ?? 0}deg`, "--i": i } as Vars} aria-labelledby={`plan-${p.id}`}>
+                {p.id === "plus" && <span className="pass-star" aria-hidden="true"><StickerArt kind="star" /></span>}
+                <div className="pass-top">
+                  <header className="pass-head">
+                    <h3 id={`plan-${p.id}`}>{p.name}</h3>
+                    <svg className="pass-plane" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M2.5 13.2 21 7.5c1-.3 1.6.9.8 1.5L9.4 16.6l-1.2 4.1-2-.6.6-3.4-4.6-1.8c-.9-.3-.8-1.5.3-1.7Z" fill="currentColor" /></svg>
+                  </header>
+                  <dl className="pass-fields">
+                    <div><dt>Books</dt><dd>{p.books == null ? "As many as you like" : p.books === 1 ? "1 book" : `${p.books} books`}</dd></div>
+                    <div><dt>People per book</dt><dd>Up to {p.members}</dd></div>
+                    <div><dt>Photos</dt><dd>{p.photos.toLocaleString("en-PH")}</dd></div>
+                  </dl>
+                </div>
+                <div className="pass-stub">
+                  <p className="price"><b>{p.price ? peso(p.price) : "₱0"}</b><span>{p.price ? "a month" : "always"}</span></p>
+                  <button type="button" className={`btn ${p.id === "plus" ? "" : "line"}`} onClick={() => { keepForSignup(title, design); navigate(me ? (p.price ? "/app/account" : "/app") : `/signup${p.price ? `?plan=${p.id}` : ""}`); }}>
+                    {p.price ? `Choose ${p.name}` : "Start free"}
+                  </button>
+                  <span className="barcode" aria-hidden="true" />
+                </div>
+              </article>
+            ))}
+          </div>
         </div>
         <p className="passes-all"><b>On every plan:</b> every cover, sticker and paper; chapters, atlas, album and notes; invite links. Photos count across all the books you own.</p>
         <p className="tickets-note">When paid months run out, the book goes back to Free limits. Nothing is deleted: you can still read and edit everything, and adding more waits until you renew.</p>
       </section>
 
-      {/* ---------- Good to know, on a legal pad ---------- */}
+      {/* ---------- Good to know ---------- */}
       <section className="sec faq" aria-labelledby="faq-h">
-        <div className="pad" data-settle style={{ "--r": "-.6deg" } as Vars}>
-          <h2 id="faq-h" className="pad-title">Good to know</h2>
+        <div className="faq-grid">
+          <h2 id="faq-h" className="sec-title left">Good to<br />know</h2>
           <div className="faq-list">
             {[
               ["Who can see our book?", "Only the people in it. Photos are private too: they only load for members who are signed in."],
@@ -300,11 +314,12 @@ export function Landing() {
         </div>
       </section>
 
-      {/* ---------- Close: an envelope to send yourselves ---------- */}
+      {/* ---------- Close: an envelope to send yourselves, on the sand at sunset ---------- */}
       <footer className="closing">
+        <img className="closing-photo" src="/img/beach-sunset.jpg" alt="" loading="lazy" decoding="async" />
         <Envelope className="close-env" postmark={kyoto} style={{ "--r": "-1.2deg" } as Vars}>
           <div className="closing-in">
-            <h2 className="sec-title ink">Start the first page<br />tonight</h2>
+            <h2 className="sec-title">Start the first page<br />tonight</h2>
             <form className="ticket-form" onSubmit={start}>
               <label htmlFor="close-title" className="sr-only">Name your book</label>
               <input id="close-title" type="text" maxLength={60} placeholder="Name your book" value={title} onChange={(e) => setTitle(e.target.value)} autoComplete="off" />
@@ -320,7 +335,7 @@ export function Landing() {
             <Link href="/login">Log in</Link>
             <Link href="/signup">Sign up</Link>
           </nav>
-          <span className="foot-fine">Sample photographs from Unsplash. Payments by PayMongo.</span>
+          <span className="foot-fine">Photographs from Unsplash. Payments by PayMongo.</span>
         </div>
       </footer>
 

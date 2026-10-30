@@ -318,7 +318,7 @@ export function PageForm({ bookId, page, onClose, onSaved }: Props) {
           <button type="button" ref={cancelBtn} className={`btn line${armed ? " warn armed" : ""}`} onClick={() => requestClose(false)} disabled={busy}>
             {armed ? "Discard changes" : "Cancel"}
           </button>
-          <button type="submit" className="btn" disabled={busy}>{busy ? "Saving…" : "Save page"}</button>
+          <button type="submit" className="btn sun" disabled={busy}>{busy ? "Saving…" : "Save page"}</button>
         </div>
       </form>
     </Dialog>
