@@ -25,8 +25,8 @@ import "./styles/atlas.css";
 import "./styles/dialogs.css";
 import "./styles/designer.css";
 import "./styles/app.css";
-import "./marketing/landing.css";
-import "./auth/auth.css";
+import "./styles/landing.css";
+import "./styles/auth.css";
 
 // Apply a chosen theme before the first paint.
 const theme = prefs.get<string>("theme", "system");

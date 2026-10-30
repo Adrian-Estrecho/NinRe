@@ -1,0 +1,22 @@
+[Unit]
+Description=NinRe
+After=network.target
+
+[Service]
+User=ninre
+Group=ninre
+WorkingDirectory=/opt/ninre
+EnvironmentFile=/etc/ninre/ninre.env
+Environment=NODE_ENV=production
+ExecStart=/usr/bin/node --disable-warning=ExperimentalWarning server/src/index.ts
+Restart=always
+RestartSec=3
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/var/lib/ninre
+
+[Install]
+WantedBy=multi-user.target

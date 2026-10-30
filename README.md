@@ -2,7 +2,7 @@
 
 A travel diary for couples and friends, built as a book. Everyone you invite writes in the same book. Each page holds photos, a pin on the book's own atlas, the date, the story of the day, a postmark, and short notes from each person. Pages gather into chapters by year. The book's cover and paper can be designed: cloth, foil, type, emblem, stickers, paper, photo style and ink.
 
-![The NinRe website: a sunny Batanes hillside with the headline "The places we've been, bound in one book", the sample book open in the middle, polaroids, a boarding pass and a luggage tag at the edges, and the photo fading into a white page below](docs/landing.png)
+![The NinRe website: a sunny Batanes hillside with the headline "The places we've been, bound in one book", the sample book open in the middle, polaroids, a boarding pass and a luggage tag at the edges, and the photo fading into a white page below](docs/screenshots/landing.png)
 
 ## What's inside
 
@@ -16,7 +16,7 @@ A travel diary for couples and friends, built as a book. Everyone you invite wri
 | **People** | Invite links (14 days, owner only), members, leaving a book. The owner's plan sets how many people fit. |
 | **Plan & account** (`/app/account`) | Plan, usage meters, prepaid checkout through PayMongo, payment history. |
 
-![The designer: a blue canvas cover with a plane and heart sticker, and the sticker sheet](docs/designer.png)
+![The designer: a blue canvas cover with a plane and heart sticker, and the sticker sheet](docs/screenshots/designer.png)
 
 Also included:
 - Light and dark themes for the app. The website stays in its daylight palette.
@@ -24,7 +24,7 @@ Also included:
 - Press **N** in a book to start a new page.
 - Four sample pages, labelled as samples, fill an empty book and disappear when the first real page is added.
 
-![A page spread with a paper-clipped photo, a postmark, the story and a sticky note](docs/page.png)
+![A page spread with a paper-clipped photo, a postmark, the story and a sticky note](docs/screenshots/page.png)
 
 ## Plans and payments
 
@@ -84,6 +84,8 @@ The earlier single-book version kept its data in `DATA_DIR/book.sqlite` with a s
 
 ## Deploying
 
+**AWS Lightsail (the plan).** Website only, on one Ubuntu server in Singapore, with Caddy for HTTPS and the data on the instance disk. See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for the steps, costs and the point at which this setup needs to change. The scripts are in [deploy/lightsail/](deploy/lightsail/).
+
 **Docker**
 
 ```bash
@@ -106,17 +108,19 @@ client/   React 19 + TypeScript + Vite
     router.tsx         a small history router
     session.tsx        who is signed in
     api.ts             typed fetch client
-    marketing/         the website: Landing, doodles, landing.css
-    auth/              sign up, log in, invite links, test checkout styles
-    app/               shell, shelf, book reader, designer, people, plan & account, test checkout
+    marketing/         the website: Landing, FlipBook, doodles
+    auth/              sign up, log in, invite links
+    app/               screens: shell, home, shelf, book reader, designer, plan & account, test checkout
     book/              the design system for books: design.ts, CoverFace, Book3D, stickers, emblems,
                        CoverDesigner, PagePreview
     views/             Chapters, AtlasView, Album
-    dialogs/           PageSpread (with notes), PageForm, CoverForm
-    components/        BookHeader, Stamp, Polaroids, Notes, Avatar, Icon, Dialog, Toast, ThemeToggle
+    dialogs/           PageSpread (with notes), PageForm, CoverForm, NewBookDialog, PeopleDialog
+    components/        BookHeader, Stamp, Polaroids, Notes, Avatar, Icon, Dialog, Toast, ThemeToggle,
+                       IconDock (kept for the planned mobile app)
     map/               atlas.ts (map engine), AtlasMap.tsx, MapDefs.tsx
     lib/               book shelving, formatting, places, samples, image resizing, pending design
-    styles/            tokens, base, book materials, pages, atlas, dialogs, designer, app
+    styles/            tokens, base, book materials, pages, atlas, dialogs, designer, app, landing, auth,
+                       icon dock (every stylesheet lives here)
   public/img, public/samples   photographs (see Photo credits)
   public/map/world.json        coastlines and borders, pre-projected
 server/   Express 5 + node:sqlite + Multer
@@ -132,6 +136,8 @@ server/   Express 5 + node:sqlite + Multer
     routes/            auth & account, books (pages, photos, notes, people, invites), billing
   test/api.test.ts     end-to-end API tests (node:test)
 tools/build-map.mjs    regenerates world.json from Natural Earth
+deploy/lightsail/      server setup, systemd service, Caddy, updates and backups
+docs/                  DEPLOYMENT.md (the deployment plan), screenshots/
 ```
 
 **Privacy.** Books are visible only to their members. Photos are stored per book under `uploads/<book id>/` and served only to signed-in members of that book. State-changing requests from other sites are refused.

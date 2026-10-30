@@ -17,7 +17,7 @@ import type { Book, NumberedPage, Page, SortOrder, View } from "../types";
 import { Album } from "../views/Album";
 import { AtlasView } from "../views/AtlasView";
 import { Chapters } from "../views/Chapters";
-import { PeopleDialog } from "./PeopleDialog";
+import { PeopleDialog } from "../dialogs/PeopleDialog";
 
 const VIEWS: { id: View; label: string }[] = [
   { id: "chapters", label: "Chapters" },

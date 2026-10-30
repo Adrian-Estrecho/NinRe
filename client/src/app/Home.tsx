@@ -10,7 +10,7 @@ import { Link, navigate, useLocation, useTitle } from "../router";
 import { useSession } from "../session";
 import type { BookSummary, Dashboard, PlaceVisit } from "../types";
 import { Shelf } from "./Library";
-import { NewBookDialog } from "./NewBookDialog";
+import { NewBookDialog } from "../dialogs/NewBookDialog";
 
 type Vars = CSSProperties & Record<`--${string}`, string | number>;
 

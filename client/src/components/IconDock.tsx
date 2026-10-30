@@ -1,5 +1,5 @@
 import { Icon, type IconName } from "./Icon";
-import "./icon-dock.css";
+import "../styles/icon-dock.css";
 
 export type DockTone = "coral" | "azure" | "violet" | "sun";
 export type DockApp = { icon: IconName; label: string; href: string; tone: DockTone };
