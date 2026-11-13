@@ -24,6 +24,8 @@ export interface AppConfig {
   payments?: Payments;
   /** Public address used in PayMongo return links and email confirmation links, e.g. https://ninre.app. Derived from the request when empty. */
   appUrl?: string;
+  /** Number of proxies in front of the server, so the real visitor's address is used for rate limits. Defaults to 1. */
+  trustProxy?: number;
   /** Sends email. Defaults to writing each email to the log instead of sending it. */
   mailer?: Mailer;
   /** Built web app to serve (client/dist). Skipped when the folder doesn't exist. */
@@ -81,7 +83,8 @@ export function createApp(cfg: AppConfig) {
   const app = express();
 
   app.disable("x-powered-by");
-  app.set("trust proxy", 1);
+  // How many proxies stand in front: 1 for a single host's proxy, 2 for the website on Vercel in front of Render's.
+  app.set("trust proxy", cfg.trustProxy ?? 1);
   app.use(securityHeaders);
 
   // The payment webhook verifies a signature over the raw body, so it comes before the JSON parser.
@@ -89,7 +92,7 @@ export function createApp(cfg: AppConfig) {
 
   app.use(express.json({ limit: "256kb" }));
   app.use(["/api", "/uploads"], appCors);
-  app.use("/api", sameOrigin);
+  app.use("/api", sameOrigin(cfg.appUrl));
 
   app.get("/api/health", (_req, res) => void res.json({ ok: true }));
   app.use("/api/plans", planRoutes(payments));

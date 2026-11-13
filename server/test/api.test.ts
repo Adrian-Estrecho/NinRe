@@ -813,3 +813,34 @@ describe("trip plans", () => {
     assert.deepEqual(none, { destination: "Qwzx", found: false, summary: "", places: [] });
   });
 });
+
+describe("website behind a proxy", () => {
+  test("accepts the site in APP_URL even though the proxy changes the Host, and still refuses other sites", async () => {
+    const dataDir = mkdtempSync(join(tmpdir(), "ninre-test-"));
+    const { app, close } = createApp({ dataDir, mailer, appUrl: "https://ninre.example" });
+    const server = app.listen(0);
+    await new Promise((r) => server.once("listening", r));
+    const base = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
+    const signUp = (origin: string, email: string) =>
+      fetch(base + "/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Origin: origin },
+        body: JSON.stringify({ name: "Ana", email, password: "correct horse", ...FORM }),
+      });
+    try {
+      assert.equal((await signUp("https://ninre.example", "proxied@example.com")).status, 201);
+      const login = await fetch(base + "/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Origin: "https://ninre.example" },
+        body: JSON.stringify({ email: "proxied@example.com", password: "correct horse" }),
+      });
+      assert.equal(login.status, 200);
+      assert.match(login.headers.get("set-cookie") ?? "", /HttpOnly/i);
+      assert.equal((await signUp("https://evil.example", "evil@example.com")).status, 403);
+    } finally {
+      await new Promise((r) => server.close(r));
+      close();
+      rmSync(dataDir, { recursive: true, force: true });
+    }
+  });
+});

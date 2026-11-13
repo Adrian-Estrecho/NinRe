@@ -83,10 +83,10 @@ export function PlanHome() {
       <header className="plan-hello">
         <span className="plan-kicker">{first ? `${greeting()}, ${first}` : greeting()}</span>
         <h1 className="app-title">Where to next?</h1>
-        <p className="plan-lede">Search a country or city, or start from a favourite below. NinRe AI can plan every day for you.</p>
+        <p className="plan-lede">Pick a favourite or search anywhere. NinRe AI can plan every day for you.</p>
       </header>
-      <WhereTo busy={busy} onGo={go} />
       <Popular />
+      <WhereTo busy={busy} onGo={go} />
       <World />
     </div>
   );
@@ -95,7 +95,7 @@ export function PlanHome() {
 /** Places the empty search box suggests in turn, from every corner of the map. */
 const DREAMS = ["Kyoto", "Santorini", "Bali", "Reykjavík", "Cusco", "Seoul", "Marrakesh", "Queenstown", "Lisbon", "Cappadocia", "Banff", "Hoi An"];
 
-/** The search: type a place and go, or tap one of the ready-made destinations below (narrowed as you type). */
+/** The search: type a country or city and go. */
 function WhereTo({ busy, onGo }: { busy: boolean; onGo: (destination: string) => void }) {
   const [q, setQ] = useState("");
   const [error, setError] = useState("");
@@ -109,19 +109,6 @@ function WhereTo({ busy, onGo }: { busy: boolean; onGo: (destination: string) =>
     const t = window.setInterval(() => setDream((d) => (d + 1) % DREAMS.length), 2400);
     return () => window.clearInterval(t);
   }, [q, focused]);
-
-  const typed = q.trim().toLowerCase();
-  // A ready-made destination matches by its name, or by a city in it ("Kyoto" finds Japan).
-  const matches = typed
-    ? IDEAS.flatMap((d) => {
-        if (d.name.toLowerCase().includes(typed)) return [{ idea: d, via: "" }];
-        const cities = d.places.map((p) => p.area.split(", ").pop()!);
-        // "kyo" means Kyoto before Tokyo.
-        const city = cities.find((c) => c.toLowerCase().startsWith(typed)) ?? cities.find((c) => c.toLowerCase().includes(typed));
-        return city ? [{ idea: d, via: city }] : [];
-      })
-    : IDEAS.filter((d) => d.featured).slice(0, 4).map((idea) => ({ idea, via: "" }));
-  const picks = matches.slice(0, 4);
 
   function send(e: FormEvent) {
     e.preventDefault();

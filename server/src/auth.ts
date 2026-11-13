@@ -159,19 +159,31 @@ export function requireMember(store: Store, need: Role | "any" = "any"): Request
 /**
  * Refuses state-changing requests sent from another site. The session cookie is SameSite=Lax,
  * so this is a second lock on the same door.
+ *
+ * `siteUrl` is the public website when it sits in front of this server as a proxy (the website on Vercel, the API
+ * on Render): the proxy rewrites the Host header to the server's own, so the site's origin is allowed by name.
  */
-export const sameOrigin: RequestHandler = (req, res, next) => {
-  if (req.method === "GET" || req.method === "HEAD" || req.method === "OPTIONS") return next();
-  const origin = req.headers.origin;
-  // The apps sign requests with a bearer token, which another site can't make a browser attach.
-  if (!origin || isAppOrigin(origin)) return next();
+export function sameOrigin(siteUrl?: string): RequestHandler {
+  let site = "";
   try {
-    if (new URL(origin).host === req.headers.host) return next();
+    if (siteUrl) site = new URL(siteUrl).origin;
   } catch {
-    // fall through to the refusal
+    // an unreadable APP_URL allows nothing extra
   }
-  res.status(403).json({ error: "That request came from another site." });
-};
+  return (req, res, next) => {
+    if (req.method === "GET" || req.method === "HEAD" || req.method === "OPTIONS") return next();
+    const origin = req.headers.origin;
+    // The apps sign requests with a bearer token, which another site can't make a browser attach.
+    if (!origin || isAppOrigin(origin)) return next();
+    if (site && origin === site) return next();
+    try {
+      if (new URL(origin).host === req.headers.host) return next();
+    } catch {
+      // fall through to the refusal
+    }
+    res.status(403).json({ error: "That request came from another site." });
+  };
+}
 
 /** Lets the phone apps, which load from localhost, call the API across origins. Cookies are never involved. */
 export const appCors: RequestHandler = (req, res, next) => {

@@ -46,6 +46,7 @@ const { app, close } = createApp({
   places,
   planner,
   appUrl: (process.env.APP_URL ?? "").trim().replace(/\/+$/, "") || undefined,
+  trustProxy: Number(process.env.TRUST_PROXY) || 1,
   clientDir: join(root, "client", "dist"),
   log,
 });
