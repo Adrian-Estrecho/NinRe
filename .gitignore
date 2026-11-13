@@ -10,3 +10,5 @@ client/.impeccable/
 # Generated
 graphify-out/
 *.tsbuildinfo
+.vercel
+.env.local

@@ -1,0 +1,9 @@
+node_modules
+data
+.env
+graphify-out
+client/android
+client/dist
+deploy
+tools
+*.log
