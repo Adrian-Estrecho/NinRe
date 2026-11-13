@@ -15,10 +15,10 @@
       "headers": [
         { "key": "X-Content-Type-Options", "value": "nosniff" },
         { "key": "Referrer-Policy", "value": "same-origin" },
-        { "key": "X-Frame-Options", "value": "DENY" },
+        { "key": "X-Frame-Options", "value": "SAMEORIGIN" },
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; img-src 'self' data: blob: https://*.wikimedia.org; style-src 'self' 'unsafe-inline'; font-src 'self'; script-src 'self'; connect-src 'self' https://en.wikipedia.org https://tiles.openfreemap.org; worker-src 'self' blob:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+          "value": "default-src 'self'; img-src 'self' data: blob: https://*.wikimedia.org; style-src 'self' 'unsafe-inline'; font-src 'self'; script-src 'self'; connect-src 'self' https://en.wikipedia.org https://tiles.openfreemap.org; worker-src 'self' blob:; frame-ancestors 'self'; base-uri 'self'; form-action 'self'"
         }
       ]
     }

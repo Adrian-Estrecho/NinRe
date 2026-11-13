@@ -52,7 +52,8 @@ const securityHeaders: RequestHandler = (_req, res, next) => {
   res.set({
     "X-Content-Type-Options": "nosniff",
     "Referrer-Policy": "same-origin",
-    "X-Frame-Options": "DENY",
+    // On a computer the site shows itself inside a phone frame (an iframe of its own pages); other sites can't frame it.
+    "X-Frame-Options": "SAMEORIGIN",
     "Content-Security-Policy": [
       "default-src 'self'",
       // Place photos come from Wikipedia; the plan maps are drawn from OpenFreeMap's tiles in a web worker.
@@ -63,7 +64,7 @@ const securityHeaders: RequestHandler = (_req, res, next) => {
       "script-src 'self'",
       "connect-src 'self' https://en.wikipedia.org https://tiles.openfreemap.org",
       "worker-src 'self' blob:",
-      "frame-ancestors 'none'",
+      "frame-ancestors 'self'",
       "base-uri 'self'",
       "form-action 'self'",
     ].join("; "),
