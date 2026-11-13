@@ -13,8 +13,10 @@ A travel diary for couples and friends, built as a book. Everyone you invite wri
 | **Shelf** (`/app`) | Every book you own or write in, shown as covers. Free allows one book. |
 | **Book** (`/app/book/:id`) | A turnable copy of the designed book beside the title, names, day counter and ledger. Read it as **Chapters** (one per year), an **Atlas** (numbered pins and a dashed route), or an **Album** (every photo). Open any page as a two-page spread with its sticky notes. |
 | **Designer** (`/app/book/:id/design`) | Live 3D book. Cover: cloth (12 colours or any colour), finish, foil, title type, layout, emblem, a cover photo from the book. Stickers: drag them onto the cover, then move, turn, resize or peel them off (keyboard works too). Pages: paper, photo style and ink, previewed on a real page. Saves itself. |
-| **People** | Invite links (14 days, owner only), members, leaving a book. The owner's plan sets how many people fit. |
-| **Plan & account** (`/app/account`) | Plan, usage meters, prepaid checkout through PayMongo, payment history. |
+| **People** | Invite links (14 days, owner only), members, leaving a book. The owner can add friends straight in, from the book or while making it; someone who chose "ask me first" gets a request instead. The owner's plan sets how many people fit. |
+| **Friends** (`/app/settings/friends`) | Every account has a username. Find people by name or @username, follow them, see followers. Friends are people who follow each other, and only friends can be added to a book directly. |
+| **Notifications** (`/app/notifications`) | The bell in the bar: new followers, being added to a book, requests to join one, people joining your book, new pages (several from one person collect into one) and notes on your pages. Checked every minute; nothing is emailed. |
+| **Settings** (`/app/settings/:section`) | Profile (name, username, about, home base, how you travel), Friends, Notifications (which kinds to keep), Privacy (show in search; let friends add you or ask first), Plan & pricing (the plans side by side, usage, prepaid checkout through PayMongo, payments), Account & security (email, password, log out other devices, download your data, delete). `/app/account` still opens the plan. |
 
 ![The designer: a blue canvas cover with a plane and heart sticker, and the sticker sheet](docs/screenshots/designer.png)
 
@@ -75,7 +77,9 @@ Copy `.env.example` to `.env`. Every value is optional.
 | --- | --- | --- |
 | `PORT` | `4000` | Port for the API and, after a build, the web app. |
 | `DATA_DIR` | `./data` | Where `ninre.sqlite` and the `uploads/` folder live. Point it at a persistent disk when you deploy. |
-| `APP_URL` | *(from the request)* | Public address used in PayMongo return links, e.g. `https://ninre.app`. |
+| `APP_URL` | *(from the request)* | Public address used in PayMongo return links and in email confirmation links, e.g. `https://ninre.app`. Set it when deploying: links sent from the phone app need the website's address. |
+| `RESEND_API_KEY` | *(empty)* | Sends the sign-up confirmation emails through [Resend](https://resend.com). Empty means nothing is sent and each link is printed in the server log instead, for trying sign-up locally. |
+| `MAIL_FROM` | `NinRe <onboarding@resend.dev>` | Who the emails come from. Use an address on a domain you've verified in Resend; the default only delivers to your own Resend account's email. |
 | `PAYMONGO_SECRET_KEY` | *(empty)* | Turns on real checkout. Empty means the labelled test checkout. |
 | `PAYMONGO_WEBHOOK_SECRET` | *(empty)* | Verifies `Paymongo-Signature` on webhooks. Empty means webhooks are refused, and payments are confirmed when people return from checkout. |
 | `PAYMONGO_METHODS` | `card,gcash,paymaya` | Payment methods offered at checkout. |
@@ -110,12 +114,14 @@ client/   React 19 + TypeScript + Vite
     api.ts             typed fetch client
     marketing/         the website: Landing, FlipBook, doodles
     auth/              sign up, log in, invite links
-    app/               screens: shell, home, shelf, book reader, designer, plan & account, test checkout
+    app/               screens: shell, home (the library), notifications, test checkout
+    settings/          the settings sections: profile, friends, notifications and privacy, plan & pricing, security
     book/              the design system for books: design.ts, CoverFace, Book3D, stickers, emblems,
                        CoverDesigner, PagePreview
-    views/             Chapters, AtlasView, Album
-    dialogs/           PageSpread (with notes), PageForm, CoverForm, NewBookDialog, PeopleDialog
-    components/        BookHeader, Stamp, Polaroids, Notes, Avatar, Icon, Dialog, Toast, ThemeToggle,
+    library/           the home as a library: Board, Bookcase, the open book (Peek) with its contents, pages
+                       written in place (PageLeaf, Editable) and designer (BookDesign); room.ts saves the arrangement
+    dialogs/           PageSpread (the website's sample pages), NewBookDialog, PeopleDialog
+    components/        Stamp, Polaroids, Notes, Avatar, Icon, Dialog, Toast, ThemeToggle,
                        IconDock (kept for the planned mobile app)
     map/               atlas.ts (map engine), AtlasMap.tsx, MapDefs.tsx
     lib/               book shelving, formatting, places, samples, image resizing, pending design
@@ -133,7 +139,7 @@ server/   Express 5 + node:sqlite + Multer
     design.ts          book design validation
     paymongo.ts        checkout sessions, payment checks, webhook signatures; the test checkout
     validate.ts        input validation
-    routes/            auth & account, books (pages, photos, notes, people, invites), billing
+    routes/            auth & account, books (pages, photos, notes, people, invites), billing, social (people, notifications)
   test/api.test.ts     end-to-end API tests (node:test)
 tools/build-map.mjs    regenerates world.json from Natural Earth
 deploy/lightsail/      server setup, systemd service, Caddy, updates and backups
@@ -153,6 +159,14 @@ docs/                  DEPLOYMENT.md (the deployment plan), screenshots/
 | `GET` | `/api/me` | `{ user: null }`, or the user with their books and plan |
 | `POST` | `/api/auth/signup`, `/api/auth/login`, `/api/auth/logout` | |
 | `PUT` / `DELETE` | `/api/account`, `/api/account/password` | name, password, delete (needs the password) |
+| `GET` / `PUT` | `/api/account/settings`, `/api/account/profile` | everything the settings screen shows; save `{ name, username, bio, home, travel }` or `{ discoverable, addToBooks, notify }` |
+| `PUT` | `/api/account/email` | `{ email, password }` |
+| `POST` / `GET` | `/api/account/sessions/others`, `/api/account/export` | log out other devices; download the account's data as JSON |
+| `GET` | `/api/people/search?q=`, `/api/people/friends` | find people (by exact username even when hidden from search); following and followers |
+| `POST` / `DELETE` | `/api/people/:userId/follow`, `DELETE /api/people/:userId/follower` | follow, unfollow; stop someone following you |
+| `GET` / `POST` | `/api/notifications`, `…/count`, `…/read` | the latest 50 and the unread count; mark all read |
+| `POST` | `/api/notifications/:id/accept`, `…/decline` | answer a request to join a book |
+| `POST` / `DELETE` | `/api/books/:id/people`, `/api/books/:id/asked/:userId` | owner adds a friend `{ userId }` (→ `added` or `asked`); withdraw a request |
 | `GET` | `/api/plans` | public: plans, prices, provider |
 | `GET` / `POST` | `/api/billing`, `/api/billing/checkout` | plan state; start a checkout `{ plan, months }` |
 | `GET` / `POST` | `/api/billing/payments/:id`, `…/sync`, `…/test-pay` | a payment; confirm with PayMongo; pay a test checkout |

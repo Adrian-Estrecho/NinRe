@@ -70,6 +70,8 @@ Stay on one server until one of these happens:
 
 ## Store apps (later)
 
+**Started 2026-11-10:** the Android app exists, with bearer-token sign-in, a native photo picker and camera, and the share sheet. How to build it, try it, and what's left before Google Play is in [ANDROID.md](ANDROID.md). The notes below are the original plan.
+
 Most of what the store apps need is the step 2 work above, plus a new way to sign in:
 
 - **Wrapper:** Capacitor around the existing React client.

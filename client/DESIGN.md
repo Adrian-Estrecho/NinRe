@@ -1,7 +1,16 @@
 ---
 name: NinRe website
-description: The prints come home. Travel photographs dissolve into the website's white page, and the signed-in app is the same white desk, without the photographs, where the books are kept.
+description: Sky and glass. Since 2026-11-13 the app and its sign-in screens stand in a misty blue sky over far mountains, and every surface on it is frosted glass. The marketing website keeps its earlier white page with photographs.
 colors:
+  sky-top: "#5f9bd6"
+  sky-mid: "#a8cbec"
+  sky-low: "#dbe9f6"
+  sky-end: "#eaf2f9"
+  night-sky-top: "#050b1d"
+  night-sky-end: "#132753"
+  glass: "rgba(255, 255, 255, .62)"
+  glass-night: "rgba(24, 40, 78, .55)"
+  band: "#3a7fd6"
   page: "#ffffff"
   page-shade: "#f5f3ee"
   night-page: "#10161c"
@@ -122,7 +131,27 @@ components:
 
 # Design System: NinRe website
 
-Scope: the public website (`src/marketing`) and the signed-in app (`src/app`, `src/views`, `src/dialogs`, with its tokens in `src/styles/tokens.css`). On 2026-10-20 the user asked for the app to take the website's style without its photographs, and to keep a night version. The sign-in, sign-up, invite and test-checkout pages (`src/auth`, `src/app/TestCheckout.tsx`) keep the earlier airmail-blue table (`.daylight`) by the user's choice the same day.
+Scope: the public website (`src/marketing`) and the signed-in app (`src/app`, `src/views`, `src/dialogs`, with its tokens in `src/styles/tokens.css`). On 2026-10-20 the user asked for the app to take the website's style without its photographs, and to keep a night version. The invite and test-checkout pages (`src/auth/JoinPage.tsx`, `src/app/TestCheckout.tsx`) keep the earlier airmail-blue table (`.daylight`) by the user's choice the same day. On 2026-11-10 the user asked for an app-style start: the phone app opens on a splash on that same blue (`.splash`), then a welcome screen on the white page where the book lies among a boarding pass, a luggage tag and a taped stamp over a faint dotted route map (`.welcome`, reusing the website's paper props). Signing up became one question to a screen (name, who they travel with, trips, how often, kind of book, where they heard of NinRe, then the account), which makes the first book from the answers. The answers are ticket cards (a paper-stock stub with the icon, a perforation with punched notches); picking only marks an answer and Continue moves on. The questions sit on the white page (`.daylight.onb`, `src/styles/onboarding.css`), with the book being made beside them on wide screens. Logging in is deliberately plain and about the two fields (`.onb-login`): a band of the splash's blue with a faint dot grid across the top (the left half on wide screens), the heading in white on it, and one white card over its edge holding Email and Password (soft grey fields with an icon, a blue ring on focus) and the Log in button. NinRe is an app first: on a computer, the welcome, sign-up and log-in screens (and every screen of the app preview) stand in a drawn phone on a pale dotted desk (`components/PhoneFrame.tsx`, `styles/phone-frame.css`). The screen is the real page in a 390 × 844 iframe, so it lays out and taps exactly as on a phone; the frame draws the status bar, camera island and home bar, and the page leaves them room through `--safe-top` and `--safe-bottom`. Leaving the phone screens (the library after logging in on the website) opens full size.
+
+## Current look: sky and glass (2026-11-13)
+
+On 2026-11-13 the user asked for a cloud theme, then pointed at a travel-app reference (frosted glass over a misty sky and mountains) and asked for the app to look like that. Wherever the sections below disagree, this section wins for the app and its sign-in screens. The marketing website, which is off by default, keeps its white page.
+
+- **Ground:** one sky behind every screen, painted on the body (`styles/base.css`): clear blue overhead (sky-top) paling to near white (sky-end), a drawn range of far mountains at the foot that mists away, and soft haze drifting slowly across. There are no photographs, in keeping with the no-stock-photos rule. At night it is the same range under stars. Screens leave their own ground transparent. Sign-in screens stay in daylight whatever the device theme (the `:root:has(.daylight…)` rule in `onboarding.css`).
+- **Glass:** cards, lists, settings, plan cards, menus, the design drawer, the book toolbar, the sign-up answers and the tab bar are frosted glass. `styles/glass.css` is the one place that lists them: translucent white (deep blue at night), a 22px blur, a bright 1px edge and a soft shadow falling straight down. Dialog sheets use thicker glass without a blur, because a blur would trap their fixed close button. The log-in and sign-up cards that straddle the blue band also use thicker glass. Corners: cards 28px, wells 18px, fields 14px, buttons full pills.
+- **Bands:** the splash and the tops of log-in and sign-up are the sky at its deepest (`--table`, now a sky blue) with haze, and white type on them. The sign-up band is no longer green.
+- **Headings:** plain sentence case in Archivo 720 at normal width, with tight tracking. The heavy wide uppercase is kept only for the NinRe wordmark. This replaces the Typography section's heavy uppercase for headings.
+- **Buttons:** icon buttons in the bar and above the room are round white glass. The bar is no longer a slab, just a faint wash of sky behind the buttons. Sun yellow still marks the primary action, and now also the current tab and a pressed head button. Notification badges are sun yellow with ink numbers.
+- **Tab bar:** a small centred glass pill of round 52px buttons. The current tab is a yellow pill that shows its name; the others show only their icon, with the name kept for screen readers.
+- **Library:** since 2026-11-13 (the user asked for "a library environment, but the UI still the same") the library view is a real room again, while the glass bars, buttons and panels over it stay as everywhere else. It has striped paper walls lit by a brass picture lamp over the board, darkening toward the corners. On screens 1500px and wider, arched windows either side of the board look out onto the app's sky (with stars at night). The bookcase and board frame are honey oak with a dark grain back panel, with a skirting board and a plank floor. At night the walls are deep green and the wood is walnut. The colours are set on `.home` (`--lib-*` and the shelf tokens), so the design panel's previews match. The Books carousel still stands in the sky. Later the same day (the user asked for the library to be "more amazing") the room gained these details, all drawn in CSS and never in the way of a tap:
+- Each shelf has a warm light strip under the plank above it, with pools of light on the books.
+- On screens 900px and wider, a brass rail runs along the top of the case and a rolling ladder hangs from it.
+- Dust drifts slowly in the lamp's light (it stays still under reduced motion).
+- Light falls from the windows: sunbeams by day, moonlight at night.
+- The lower wall is wainscot panelling under a chair rail, and a patterned rug lies on the floor.
+- On screens 1500px and wider, a big potted plant stands on the floor beside the case.
+- **Sign-up answers:** glass cards with the icon stub and a dashed perforation. The punched notches are gone, because the sky behind a card isn't one colour.
+- **Shadows:** soft and blue-tinted, falling straight down from above. This replaces the Window Rule's down-and-to-the-right offset in the app.
 
 ## Overview
 
@@ -202,7 +231,7 @@ The first viewport is a column on the Batanes photograph: nav, headline, two lin
 
 Photographs follow one grammar in several placements: full-bleed behind the hero, the plans and the close; a pair that runs off opposite edges and crossfades in the middle; a band under the map; and frames on the film strip, which runs wider than the page and is centred on its ringed frame.
 
-The signed-in app is a working screen: a sticky 64px bar on the page (wordmark left, Home · Plan & account centred, plan chip, theme toggle and account menu right) over a 1160px column (1320px for the designer). The home opens with the greeting title and the actions, then On this day beside So far (1.3fr / 0.9fr), then the map of everywhere, then the shelves. Sections open with clamp(44px, 6vw, 76px) above their heading.
+The signed-in app is a working screen: a sticky 64px bar on the page (wordmark left, Home · Friends · Settings centred, plan chip, theme toggle, the notifications bell and the account menu right) over a 1160px column (1320px for the designer). The home opens with the greeting title and the actions, then the library room.
 
 Breakpoints:
 - 1240: the luggage tag goes.
@@ -210,7 +239,7 @@ Breakpoints:
 - 900: edge objects hide, the open-page key and the FAQ stack, and the passes stack.
 - 760: the nav drops its links, the closed book zooms 1.22× and shrinks as it opens, the photo pair stacks and crossfades top to bottom, the aerial band under the map hides, and the atlas polaroids form a 2-column grid.
 - 460: Log in leaves the nav.
-- In the app: at 860 the home's two columns stack and So far becomes three across; at 720 the plan chip goes and the actions fill the width; at 520 the shelf shows two books a row; at 440 the nav keeps only Home.
+- In the app: at 720 the plan chip goes, the actions fill the width, the board turns nearly square, things on the bookcase shrink and the shelves shorten to 290px rows; at 440 the nav keeps only Home.
 
 ## Elevation & Depth
 
@@ -276,16 +305,24 @@ The sample book lies in the middle of the first viewport.
 - Only the visible spread is reachable by keyboard; the rest are `inert`.
 
 ### The signed-in frame
-- **Bar:** the website's nav in ink on the page: wordmark (870, width 112) left, Home and Plan & account centred and underlined at 2px when current, then the plan chip, the theme toggle and the account avatar. No blur; a hairline under it.
-- **Plan chip:** the plan name in 800 uppercase on its pass stock (mint, sun, blush), 3px corners. It links to Plan & account.
+- **Bar:** the website's nav in ink on the page: wordmark (870, width 112) left, Home, Friends and Settings centred and underlined at 2px when current, then the plan chip, the theme toggle, the bell (a red count badge when there is news) and the account avatar, whose menu opens Profile, Friends, Notifications, Plan & pricing and Settings. Since 2026-10-31, at the user's request, it is frosted glass: the page at 64% under an 18px blur, a hairline under it. On the home it floats over the full-screen room.
+- **Plan chip:** the plan name in 800 uppercase on its pass stock (mint, sun, blush), 3px corners. It links to Plan & pricing in settings.
 - **Titles:** every screen title and section head is the website's heavy, wide uppercase (Headline at a smaller size for sections), with nothing above it.
 - **Paper:** account cards, dialogs and the page form are bond paper with 4px corners and the Lift shadow (Lift Large for dialogs). Inputs have 6px corners and a stamp-blue focus.
 
 ### Home (signed in)
-- **On this day:** each page from today's date in earlier years shows its first photo as a polaroid (tilted ±3.5°, Gochi Hand caption), then the page title, then "N years ago today" in stamp red caps, then place and book. With nothing on the day it falls back to the same week, and with nothing at all it shows a dashed empty polaroid and says the page added today comes back next year.
-- **So far:** totals set like a book's ledger (pages, photos, places, books, people writing with you, first page), heavy numbers over small labels, hairline-ruled, two across beside the memories.
-- **Everywhere you've been (signature):** every pinned place from every book on the folded map, numbered in the order first visited, beside the route list. It is a book scope, so it takes cream paper by day and the night paper after dark. A pin or a row opens that place's latest page in its book.
-- **Shelf:** the books as 3D covers; a dashed new-book tile with a sun-yellow plus, or a locked tile that leads to Plus when Free's book is used.
+On 2026-10-31 the user removed the dashboard and asked for the home to be a whole library: a board above the shelf they can design, their favourite pictures pinned on it and dragged around, things they design on top of the bookcase, and books that fly to the middle of the screen to show their pages, with Edit. The home is full screen: the greeting and date line sit on the wall at the top of the room, and the tools (Add a page in sun yellow, New book, Photos, Design in ink when on) are a glass dock fixed to the right edge, a bar along the bottom on phones. The room is in `src/library/` with `styles/library.css`; each person's arrangement is saved on the server (`/api/library`).
+- **The room:** a papered wall (warm pinstripe; deep ink at night) over oak floorboards, filling the screen from under the glass bar to the floor, with the bookcase always standing on the floor. It is the one place the app's page takes a tint, because the user asked for a whole room.
+- **The board (signature):** framed in the bookcase's oak. Cork, linen, felt, chalkboard or a brushed-steel fridge door. Its title is Gochi Hand on a taped paper label (chalk straight on the chalkboard), "Places we've been" by default, with a paper tag beside it counting countries ("9 / 198"). Since 2026-11-13 it is a collection: a holder for every country, 198 in all (the 193 UN members, Vatican City, Palestine, Taiwan, Hong Kong and Macau; `src/lib/countries.ts`), grouped by continent (Asia, Oceania, Europe, the Americas, Africa), each continent headed with its count. A row of tabs under the title (All, Asia, Oceania, Europe, North America, South America, Africa, each with its count) shows the whole world or one continent; the chosen tab is a paper label, the rest dashed, kept per device. The tabs are one row that scrolls sideways everywhere: swiped on a phone, dragged with a mouse (or turned with the wheel) on a computer, through `src/lib/dragScroll.ts`, which the magnet row in the design drawer uses too. An empty holder is a shallow round dent with a dashed rim and the country's code. A country is earned by a page set there with at least one photo; its souvenir magnet (`src/library/MagnetArt.tsx`, the flag from flag-icons in a round sticker with a gloss) fills the holder, dropping in once on each device. The board grows to fit (about 20 holders across on a computer, 27px holders on a phone) instead of keeping its shape. A tap on a magnet opens the page its words name, or else the latest page from that country. Photos pinned before 2026-11-13 stay in the saved room but aren't shown.
+- **Writing on magnets:** the design drawer's Board tab opens on `src/library/MagnetEditor.tsx`, with a row of the earned magnets, then the picked one large (die-cut round, scalloped, oval or rounded-rectangle, with a cream ribbon) beside "Written on it" (up to 16 characters, in capitals on the ribbon). Chips offer places to write: the person's own places and regions in that country first, then well-known ones (for the Philippines, Palawan, Boracay, Siargao, Vigan…); the chip in use is sun yellow. Each country has one magnet, and there are no hand-made ones: they're earned only by posting a photo.
+- **The bookcase:** up to ten things stand on its crown (plant, globe, camera, desk lamp, postcards, ticket jar, suitcase, drawn as flat SVG) and slide along it. Below, oak sides around a darker back panel, one shelf each for Your books and Shared with you with a brass label plate on its last plank, a plinth, and the floor. Spines, the new-book slot and the bookends are as before.
+- **Taking a book down:** clicking a spine (or opening /app/book/:id) leaves a gap on the shelf while the book flies to the middle of the screen, turning from its spine to its cover. The cover swings open onto an endpaper printed in the cloth colour, and the spread fades in where the open book was, in the book's paper and type. Close, Escape or the backdrop play it in reverse back onto the shelf. Reduced motion skips the flight. On phones the spread is one column. On 2026-10-31 the user removed the separate book page (header, Chapters, Atlas and Album tabs) and the design page: everything happens in the open book.
+- **Contents:** the book opens at the front: "Ex libris" and the names on the left; on the right a contents page of chapters by year (Chapter I in the accent, the year beside it) and each page's title, date, dotted leader and folio. A tap turns to that page. An empty book offers "Add the first page" (and Invite, for a book just made).
+- **Reading first:** a book opens to be read: the pages are simply printed, with nothing to click into, and the toolbar holds only previous / folio / next and a sun-yellow Edit. Edit brings out the tools (they slide out of the bar) and makes the page writable; Done, in ink at the end, puts them away and keeps anything mid-edit. Starting a new page, or opening to design, goes straight into writing.
+- **Writing in place:** while writing, a page is written straight onto the paper. Its title, date, place, region, story and each photo's caption show as set; hovering tints them in the accent and a click turns that text into a field in the same type (Enter or clicking away saves it, Escape puts it back). The kind of day is an inline choice. Photos sit on the left page with thumbnails under the one shown; a dashed + adds more (12 a page) and an × on a thumbnail takes one off. Changes save a moment after the last one. Notes stay under the story.
+- **The book's toolbar:** a glass pill under the spread (a bar along the bottom on phones): previous / folio / next, then, while writing, Contents, + Page in sun yellow (a new page after the last, at the same place, dated today, with its title ready to type), Design, People, and ⋯ for Remove this page and Delete this book (each tapped twice), or Leave for someone else's book; then Saving… / Saved, and Done.
+- **Designing the book:** Design slides the book to the left of a paper sheet and brings the materials in on the right (the book designer: cloth, finish, foil, type, layout, emblem, stickers, pages, with the title and names), saving as you go. Done returns to the page.
+- **Design:** a frosted drawer that slides out beside the dock (a sheet above the bar on phones; Escape puts it away): board material swatches, Pins / Tape / Clips, Choose photos (a picker of every photo in the person's books, grouped by book), the board's title, and buttons to put each thing on the bookcase. In design mode an ink × on each photo and thing takes it away. Changes save a moment after the last one, and the panel says Saving…, Saved or Couldn't save (with Try again).
 
 ### Icon dock (mobile app only)
 `src/components/IconDock.tsx` keeps the app-icon tiles (map, page, cover, plans) for the future mobile app, with its own stylesheet that loads only when a dock renders. The website doesn't show it.

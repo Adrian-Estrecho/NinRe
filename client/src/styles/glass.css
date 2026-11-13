@@ -1,0 +1,97 @@
+/*
+ * The glass layer. Every surface that sits on the sky is frosted glass: translucent white (deep blue at night), blurring
+ * the mountains and haze behind it, with a bright hairline edge and big round corners. Headings are plain sentence case.
+ * Round white icon buttons, a compact tab bar of round buttons with the current one in sun yellow, yellow badges.
+ * Loaded after the screen stylesheets so it can set the surfaces in one place.
+ */
+
+/* ---------- Glass surfaces ---------- */
+.acct-card, .set-nav ul, .set-me, .nt-list, .plan-card, .trip-list, .place-list, .sug-list, .price-card,
+.login-card, .su-card, .terms-sheet {
+  background: var(--glass); border: 1px solid var(--glass-edge); box-shadow: var(--glass-shadow);
+  -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur);
+}
+/* The log-in and sign-up cards straddle the blue band: thicker glass, so the band doesn't split them in two tones. */
+.login-card, .su-card { background: rgba(255, 255, 255, .9); }
+/* Dialog sheets stay unblurred (a backdrop filter would trap the fixed close button inside them); the veil does the frosting. */
+.panel { background: var(--glass-hi); border: 1px solid var(--glass-edge); box-shadow: var(--glass-shadow), var(--lift-lg); }
+/* Menus are solid: what lies under them (a board full of handwriting) must not read through their words. */
+.menu-pop { background: var(--card); border: 1px solid var(--glass-edge); }
+.design-panel, .peek-bar { background: var(--glass); border: 1px solid var(--glass-edge); -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur); }
+.design-panel { border-radius: var(--r-card); }
+/* Wells inside glass: a little more white, no border */
+.meter, .buy-side, .prof-card, .me-stats, .me-list, .set-ic, .fr-tabs { background: var(--glass-lo); }
+.set-nav li a:hover, .set-nav li a[aria-current="page"] { background: var(--glass-lo); }
+.set-stack .acct-card { border-radius: var(--r-card); }
+
+/* Answer cards in sign-up: glass, taking an ink edge when picked (onboarding.css sets --edge) */
+.onb-opt {
+  --edge: var(--glass-edge); background: var(--glass); box-shadow: var(--glass-shadow);
+  -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur);
+}
+.onb-opt[aria-pressed="true"] { background: var(--glass-hi); }
+.onb-input { background: var(--glass-hi); border-color: var(--glass-edge); -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur); }
+
+/* ---------- The bar: a strip of frosted glass across the top, with round glass buttons on it ---------- */
+.appbar {
+  background: var(--glass); border-bottom: 1px solid var(--glass-edge);
+  box-shadow: 0 10px 28px -18px rgba(35, 80, 140, .4);
+  -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur);
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) { .appbar { background: var(--glass-hi); } }
+.appbar-end .btn.icon, .close-x, .head-btn, .onb-back, .app-back {
+  border: 1px solid var(--glass-edge); background: var(--glass-hi); color: var(--ink); box-shadow: var(--glass-shadow);
+  -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur);
+}
+.appbar-end .btn.icon { width: 42px; min-height: 42px; }
+.appbar-end .btn.icon:hover, .head-btn:hover:not(:disabled, [aria-pressed="true"]) { background: #fff; }
+.head-btn:is([aria-pressed="true"], [aria-expanded="true"]) { background: var(--sun); border-color: var(--sun); color: #13283f; }
+.app-back { border-radius: 999px; padding: 0 14px 0 8px; margin-left: 0; }
+/* The login and sign-up bands keep their back arrow white on the blue. */
+.onb-login .onb-back, .onb-signup .onb-back { background: rgba(255, 255, 255, .18); border-color: rgba(255, 255, 255, .35); color: #fff; box-shadow: none; }
+
+/* Yellow badges, as on the bell in the reference look */
+.bell-n, .menu-n { background: var(--sun); color: #13283f; box-shadow: 0 0 0 2px #fff; }
+
+/* The two-way switch: a glass track, the chosen side a solid white pill */
+.view-seg { background: var(--glass); border: 1px solid var(--glass-edge); box-shadow: var(--glass-shadow); -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur); }
+.view-seg button:is([aria-pressed="true"], [aria-selected="true"]) { background: #fff; color: #13283f; box-shadow: 0 4px 12px -6px rgba(35, 80, 140, .45); }
+
+/* ---------- Tab bar: a small glass pill of round buttons; the current tab is a yellow pill with its name ---------- */
+/* max-content: centred with left: 50%, an auto width could only take half the screen, and a long current tab spilled out. */
+.tabbar {
+  width: max-content; max-width: calc(100% - 20px); gap: 8px; padding: 7px; border-radius: 999px;
+  background: var(--glass); border: 1px solid var(--glass-edge); box-shadow: var(--glass-shadow), var(--lift);
+}
+.tabbar a {
+  flex: none; flex-direction: row; justify-content: center; gap: 8px; width: 52px; height: 52px; padding: 0; border-radius: 999px;
+  background: var(--glass-hi); color: var(--ink); font-size: .9rem; font-weight: 700;
+  box-shadow: 0 4px 12px -6px rgba(35, 80, 140, .4); transition: background-color .2s, width .3s var(--ease-out), padding .3s var(--ease-out);
+}
+.tabbar a span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.tabbar a:hover:not([aria-current="page"]) { background: #fff; color: var(--ink); }
+.tabbar a[aria-current="page"] { width: auto; padding: 0 20px 0 16px; background: var(--sun); color: #13283f; }
+.tabbar a[aria-current="page"] span { position: static; width: auto; height: auto; clip: auto; }
+/* No ring on a tap; from the keyboard, a ring that hugs the button and stays inside the bar. */
+.tabbar a { -webkit-tap-highlight-color: transparent; }
+.tabbar a:focus { outline: none; }
+.tabbar a:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--glass-hi), 0 0 0 4px var(--ink); }
+
+/* ---------- Headings: plain sentence case, set firmly but not shouted ---------- */
+.app-title, .sec-h, .lib-empty h2, .acct-card h2, .panel h2, .sheet h2, .auth-card h1, .set-head h2, .set-sub, .me-head h2,
+.welcome-copy h1, .onb h1, .terms h1, .price-name {
+  text-transform: none; font-weight: 720; font-stretch: 100%; letter-spacing: -.025em; line-height: 1.08;
+}
+.app-title { font-size: clamp(1.9rem, 4vw, 2.9rem); }
+.welcome-copy h1 { font-size: clamp(2rem, 9.4vw, 2.7rem); }
+.onb h1 { font-size: clamp(1.9rem, 8vw, 2.5rem); }
+
+/* ---------- Night: glass buttons go dark too ---------- */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) :is(.appbar-end .btn.icon, .close-x, .head-btn, .app-back):hover:not([aria-pressed="true"]) { background: var(--glass); }
+  :root:not([data-theme="light"]) .tabbar a:hover:not([aria-current="page"]) { background: var(--glass); }
+  :root:not([data-theme="light"]) :is(.bell-n, .menu-n) { box-shadow: 0 0 0 2px var(--bg); }
+}
+:root[data-theme="dark"] :is(.appbar-end .btn.icon, .close-x, .head-btn, .app-back):hover:not([aria-pressed="true"]) { background: var(--glass); }
+:root[data-theme="dark"] .tabbar a:hover:not([aria-current="page"]) { background: var(--glass); }
+:root[data-theme="dark"] :is(.bell-n, .menu-n) { box-shadow: 0 0 0 2px var(--bg); }

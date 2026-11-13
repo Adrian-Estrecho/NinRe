@@ -12,6 +12,7 @@
   },
   "scripts": {
     "dev": "concurrently -k -n api,web -c yellow,cyan \"npm run dev -w server\" \"npm run dev -w client\"",
+    "dev:app": "concurrently -k -n api,web,app -c yellow,cyan,magenta \"npm run dev -w server\" \"npm run dev -w client\" \"npm run app:web -w client\"",
     "build": "npm run build -w client",
     "start": "npm start -w server",
     "test": "npm test -w server",

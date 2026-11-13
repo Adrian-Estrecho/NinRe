@@ -1,0 +1,1127 @@
+/*
+ * The signed-in home as a real library: a pinboard on papered walls under a brass picture lamp, windows onto the sky
+ * either side when there is room, and a wooden bookcase with the person's things on top and their books spine-out on
+ * its shelves, standing on a plank floor. A book taken down flies to the middle and opens.
+ */
+
+/* ---------- The room: the whole screen of sky, under the glass bar, down to the mist above the tab bar ---------- */
+.room {
+  --room-pad: clamp(16px, 4vw, 64px); --dock: 0px;
+  position: relative; min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; overflow: hidden;
+  padding: calc(64px + var(--safe-top) + clamp(24px, 3.4vw, 48px)) calc(var(--room-pad) + var(--dock)) 0 var(--room-pad);
+  background: none;
+}
+.room-head { width: 100%; max-width: 1180px; margin: 0 auto clamp(24px, 3vw, 40px); }
+.wall { display: flex; justify-content: center; padding-bottom: clamp(30px, 4vw, 54px); }
+/* The bookcase stands in the mist, however tall the screen. */
+.room > .case { margin-top: auto; width: 100%; }
+/* The mist the bookcase stands in: the foot of the case fades into soft white haze, wider than the case. */
+.floor {
+  position: relative; z-index: 2; height: calc(34px + var(--tabbar-h) + var(--safe-bottom));
+  margin: 0 calc((var(--room-pad) + var(--dock)) * -1) 0 calc(var(--room-pad) * -1);
+  background: linear-gradient(color-mix(in oklab, var(--floor) 70%, transparent), var(--floor-2));
+}
+.floor::before { content: ""; position: absolute; left: 0; right: 0; bottom: calc(100% - 1px); height: 70px; pointer-events: none;
+  background: linear-gradient(transparent, color-mix(in oklab, var(--floor) 70%, transparent)); }
+/* In the carousel there is no bookcase standing in the mist, so the floor is just room for the tab bar. */
+.room.as-carousel .floor { background: none; }
+.room.as-carousel .floor::before { content: none; }
+/* With no books yet there's no room to furnish: the greeting and the invitation, under the bar. */
+.home-plain { max-width: var(--sheet); margin: 0 auto; padding: calc(64px + var(--safe-top) + clamp(28px, 4vw, 52px)) var(--gutter-r) 80px var(--gutter-l); }
+
+/* ---------- The library itself: a real room around the board and the bookcase ----------
+   Papered walls in the warm light of a brass picture lamp over the board, tall arched windows either side of it when
+   the screen is wide enough (the app's sky outside them, stars at night), the bookcase and the board's frame in real
+   wood, a skirting board and a plank floor. Only the room changes: the bars, buttons and panels over it are the
+   app's own. The colours are set on .home so the design panel's little previews show the same wood and paper. */
+.home {
+  --lib-paper: #ece2cf; --lib-stripe: rgba(122, 88, 48, .06); --lib-glow: rgba(255, 220, 160, .55); --lib-dim: rgba(80, 52, 22, .2);
+  --lib-plank: #b58858; --lib-plank-2: #93673e; --lib-seam: rgba(70, 40, 15, .3); --lib-skirt: #f5eee0; --lib-skirt-2: #d6c6a8;
+  --lib-trim: #f7f2e7; --lib-trim-2: #d5c7ad; --lib-lamp: rgba(255, 228, 175, .42);
+  --lib-wain: #e3d5b9; --lib-wain-2: #d5c4a2; --lib-shelf-light: rgba(255, 212, 140, .5); --lib-beam: rgba(255, 249, 232, .5);
+  --lib-rug: #8c3a2c; --lib-rug-2: #caa368; --lib-rug-3: #24394b;
+  --shelf-top: #c99a66; --shelf-front: #a7743e; --shelf-edge: #774b25; --shelf-shade: rgba(55, 28, 5, .36);
+  --wall: var(--lib-paper); --wall-2: var(--lib-stripe); --case-back: #5c3b22; --floor: var(--lib-plank); --floor-2: var(--lib-plank-2);
+}
+:root[data-theme="dark"] .home {
+  --lib-paper: #1c2823; --lib-stripe: rgba(255, 255, 255, .028); --lib-glow: rgba(255, 186, 104, .17); --lib-dim: rgba(0, 0, 0, .4);
+  --lib-plank: #4b3121; --lib-plank-2: #352217; --lib-seam: rgba(0, 0, 0, .45); --lib-skirt: #2b3a33; --lib-skirt-2: #17211d;
+  --lib-trim: #2f3e37; --lib-trim-2: #18221e; --lib-lamp: rgba(255, 196, 120, .22);
+  --lib-wain: #17221e; --lib-wain-2: #111915; --lib-shelf-light: rgba(255, 190, 110, .42); --lib-beam: rgba(165, 192, 255, .13);
+  --lib-rug: #5a241d; --lib-rug-2: #8a6d43; --lib-rug-3: #13222e;
+  --shelf-top: #80583a; --shelf-front: #5d3c24; --shelf-edge: #3a2414; --shelf-shade: rgba(0, 0, 0, .48); --case-back: #28190f;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .home {
+    --lib-paper: #1c2823; --lib-stripe: rgba(255, 255, 255, .028); --lib-glow: rgba(255, 186, 104, .17); --lib-dim: rgba(0, 0, 0, .4);
+    --lib-plank: #4b3121; --lib-plank-2: #352217; --lib-seam: rgba(0, 0, 0, .45); --lib-skirt: #2b3a33; --lib-skirt-2: #17211d;
+    --lib-trim: #2f3e37; --lib-trim-2: #18221e; --lib-lamp: rgba(255, 196, 120, .22);
+    --lib-wain: #17221e; --lib-wain-2: #111915; --lib-shelf-light: rgba(255, 190, 110, .42); --lib-beam: rgba(165, 192, 255, .13);
+    --lib-rug: #5a241d; --lib-rug-2: #8a6d43; --lib-rug-3: #13222e;
+    --shelf-top: #80583a; --shelf-front: #5d3c24; --shelf-edge: #3a2414; --shelf-shade: rgba(0, 0, 0, .48); --case-back: #28190f;
+  }
+}
+/* The walls: striped paper above panelled wainscot (a chair rail, then raised panels), lit warmly round the board and
+   falling into shadow at the corners, a skirting board at the foot */
+.room:not(.as-carousel) {
+  --floor-h: calc(34px + var(--tabbar-h) + var(--safe-bottom)); --wain: clamp(150px, 24vh, 250px);
+  background:
+    radial-gradient(56% 44% at 50% 28%, var(--lib-glow), transparent 72%),
+    radial-gradient(130% 90% at 50% 38%, transparent 52%, var(--lib-dim)),
+    linear-gradient(var(--lib-skirt) 0 3px, var(--lib-skirt-2) 3px calc(100% - 2px), rgba(0, 0, 0, .25) calc(100% - 2px)) 0 calc(100% - var(--floor-h)) / 100% 20px no-repeat,
+    linear-gradient(var(--lib-trim) 0 3px, var(--lib-trim-2) 3px 8px, rgba(0, 0, 0, .14) 8px 10px) 0 calc(100% - var(--floor-h) - var(--wain) + 10px) / 100% 10px no-repeat,
+    repeating-linear-gradient(90deg, transparent 0 22px, rgba(255, 255, 255, .22) 22px 24px, rgba(0, 0, 0, .09) 24px 26px, transparent 26px 174px, rgba(0, 0, 0, .09) 174px 176px, rgba(255, 255, 255, .22) 176px 178px, transparent 178px 200px) 0 calc(100% - var(--floor-h) - 42px) / 100% calc(var(--wain) - 78px) no-repeat,
+    linear-gradient(rgba(0, 0, 0, .09) 0 2px, rgba(255, 255, 255, .22) 2px 4px, transparent 4px calc(100% - 4px), rgba(255, 255, 255, .22) calc(100% - 4px) calc(100% - 2px), rgba(0, 0, 0, .09) calc(100% - 2px)) 0 calc(100% - var(--floor-h) - 42px) / 100% calc(var(--wain) - 78px) no-repeat,
+    linear-gradient(var(--lib-wain), var(--lib-wain-2)) 0 calc(100% - var(--floor-h)) / 100% var(--wain) no-repeat,
+    repeating-linear-gradient(90deg, var(--lib-stripe) 0 2px, transparent 2px 44px, var(--lib-stripe) 44px 45px, transparent 45px 88px),
+    var(--lib-paper);
+}
+/* The bookcase stands on the floor, its shadow on the boards in front of it */
+.room:not(.as-carousel) > .case { z-index: 1; }
+.room:not(.as-carousel) .case-base { box-shadow: inset 0 3px 0 rgba(255, 255, 255, .12), 0 16px 18px -8px rgba(30, 15, 5, .5); }
+/* Wood grain in the back of the case, behind the books */
+.room:not(.as-carousel) .case-body { background-image: repeating-linear-gradient(90deg, rgba(0, 0, 0, .07) 0 1px, transparent 1px 9px, rgba(255, 255, 255, .025) 9px 10px, transparent 10px 23px); }
+/* The empty slot for a new book, chalked on the dark back of the case */
+.room:not(.as-carousel) .spine-new { border-color: rgba(255, 238, 214, .38); color: rgba(255, 238, 214, .82); }
+.room:not(.as-carousel) .spine-new:hover { border-color: rgba(255, 238, 214, .7); color: #fff7ea; }
+.room:not(.as-carousel) .decor-btn { filter: drop-shadow(3px 4px 3px rgba(50, 28, 8, .35)); }
+/* The floor: planks running away from you, a little darker further off, in the shadow of the skirting */
+.room:not(.as-carousel) .floor {
+  z-index: auto;
+  background:
+    linear-gradient(rgba(25, 12, 2, .3), transparent 12px),
+    repeating-linear-gradient(90deg, transparent 0 calc(var(--plank-w, 128px) - 2px), var(--lib-seam) calc(var(--plank-w, 128px) - 2px) var(--plank-w, 128px)),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, .035) 0 1px, transparent 1px 6px),
+    linear-gradient(var(--lib-plank-2), var(--lib-plank) 60%);
+}
+/* A patterned rug on the boards in front of the bookcase, going away from you */
+.room:not(.as-carousel) .floor::before {
+  content: ""; left: 50%; right: auto; top: 12px; bottom: auto; width: min(80%, 980px); height: calc(var(--tabbar-h) + 10px); transform: translateX(-50%);
+  clip-path: polygon(5% 0, 95% 0, 100% 100%, 0 100%);
+  background:
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, .07) 0 5px, transparent 5px 16px) center / calc(100% - 70px) calc(100% - 30px) no-repeat,
+    repeating-linear-gradient(-45deg, rgba(255, 255, 255, .07) 0 5px, transparent 5px 16px) center / calc(100% - 70px) calc(100% - 30px) no-repeat,
+    linear-gradient(var(--lib-rug-3), var(--lib-rug-3)) center / calc(100% - 70px) calc(100% - 30px) no-repeat,
+    linear-gradient(var(--lib-rug-2), var(--lib-rug-2)) center / calc(100% - 46px) calc(100% - 18px) no-repeat,
+    radial-gradient(circle, rgba(255, 255, 255, .12) 1px, transparent 1.6px) 0 0 / 8px 8px,
+    var(--lib-rug);
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, .3));
+}
+/* A brass picture lamp on top of the board, held up on two stems so its shade sits right behind the Library / Books
+   switch and the buttons beside it (its ends show either side of them), glowing behind them and throwing its light
+   down onto the magnets. The switch and buttons stay in front of it. */
+.room:not(.as-carousel) .wall { position: relative; --head-gap: clamp(24px, 3vw, 40px); }
+.room:not(.as-carousel) > .room-head { position: relative; z-index: 4; }
+.lib-lamp {
+  position: absolute; z-index: 3; top: calc(var(--head-gap) * -1 - 30px); left: 50%; width: min(80%, 430px); height: 14px; transform: translateX(-50%); pointer-events: none;
+  border-radius: 7px 7px 12px 12px; background: linear-gradient(#f6dfa8, #c39543 55%, #8a6322);
+  box-shadow: 0 5px 9px -3px rgba(40, 24, 4, .5), 0 10px 26px 2px var(--lib-lamp);
+}
+/* The two stems, from the shade down to the top of the board's frame */
+.lib-lamp::before {
+  content: ""; position: absolute; left: 22%; right: 22%; top: calc(100% - 2px); height: calc(var(--head-gap) + 20px);
+  background: linear-gradient(90deg, #8a6322, #e8c87e 3px, #8a6322 7px, transparent 7px calc(100% - 7px), #8a6322 calc(100% - 7px), #e8c87e calc(100% - 4px), #8a6322);
+}
+.lib-lamp::after {
+  content: ""; position: absolute; left: -30%; right: -30%; top: 100%; height: min(320px, 36vw);
+  background: radial-gradient(50% 100% at 50% 0, var(--lib-lamp), transparent 72%); mix-blend-mode: screen;
+}
+/* Tall arched windows either side of the board, where there's wall enough for them */
+@media (min-width: 1500px) {
+  .room:not(.as-carousel) .wall { --win-w: clamp(96px, calc((100% - 1040px) / 2 - 84px), 220px); }
+  .room:not(.as-carousel) .wall::before, .room:not(.as-carousel) .wall::after {
+    content: ""; position: absolute; top: 8px; bottom: calc(clamp(30px, 4vw, 54px) + 6px); width: var(--win-w);
+    border: 10px solid var(--lib-trim); border-bottom-width: 16px; border-radius: 50% 50% 3px 3px / 96px 96px 3px 3px;
+    background:
+      linear-gradient(90deg, transparent calc(50% - 3px), var(--lib-trim) calc(50% - 3px) calc(50% + 3px), transparent calc(50% + 3px)),
+      linear-gradient(transparent 40%, var(--lib-trim) 40% calc(40% + 6px), transparent calc(40% + 6px) 70%, var(--lib-trim) 70% calc(70% + 6px), transparent calc(70% + 6px)),
+      var(--stars) 0 0 / 180px 180px, var(--sky);
+    box-shadow: inset 0 0 0 1px var(--lib-trim-2), inset 0 0 26px rgba(0, 0, 0, .2), 0 2px 0 var(--lib-trim-2), 0 22px 26px -20px rgba(40, 24, 8, .55);
+    pointer-events: none;
+  }
+  .room:not(.as-carousel) .wall::before { right: calc(50% + 520px + 54px); }
+  .room:not(.as-carousel) .wall::after { left: calc(50% + 520px + 54px); }
+}
+/* Light falling in through the windows: sunbeams by day, moonlight at night, slanting down across the wall */
+.lib-beams { display: none; }
+@media (min-width: 1500px) {
+  .room:not(.as-carousel) .lib-beams { display: block; position: absolute; inset: 0; pointer-events: none; }
+  .lib-beams::before, .lib-beams::after {
+    content: ""; position: absolute; top: calc(100% - clamp(30px, 4vw, 54px) - 22px); width: calc(var(--win-w) * 2.8); height: 92vh; filter: blur(3px);
+    background: linear-gradient(var(--lib-beam), transparent 88%);
+  }
+  .lib-beams::before { left: calc(50% - 574px - var(--win-w)); clip-path: polygon(0 0, 36% 0, 100% 100%, 64% 100%); }
+  .lib-beams::after { right: calc(50% - 574px - var(--win-w)); clip-path: polygon(64% 0, 100% 0, 36% 100%, 0 100%); }
+}
+/* Dust drifting slowly in the picture lamp's light */
+.lib-motes {
+  position: absolute; z-index: 3; top: 0; left: 50%; width: min(46%, 360px); height: min(250px, 30vw); transform: translateX(-50%); overflow: hidden; pointer-events: none;
+  -webkit-mask-image: radial-gradient(50% 100% at 50% 0, #000 35%, transparent 78%); mask-image: radial-gradient(50% 100% at 50% 0, #000 35%, transparent 78%);
+}
+.lib-motes::before, .lib-motes::after {
+  content: ""; position: absolute; inset: -40% -10%;
+  background-image:
+    radial-gradient(circle, rgba(255, 241, 210, .95) 0 1px, transparent 1.7px),
+    radial-gradient(circle, rgba(255, 241, 210, .7) 0 .8px, transparent 1.4px),
+    radial-gradient(circle, rgba(255, 241, 210, .85) 0 1.2px, transparent 1.9px);
+  background-size: 97px 83px, 61px 71px, 143px 127px; background-position: 11px 23px, 37px 5px, 70px 60px;
+  animation: motes 26s linear infinite;
+}
+.lib-motes::after { background-size: 113px 101px, 79px 89px, 167px 151px; background-position: 51px 9px, 3px 44px, 120px 30px; opacity: .7; animation-duration: 38s; animation-direction: reverse; }
+@keyframes motes { from { transform: translate(0, 0); } 50% { transform: translate(14px, -46px); } to { transform: translate(-6px, -92px); } }
+/* Each shelf lit from under the plank above it: a warm strip of light and pools of it falling on the books */
+.room:not(.as-carousel) .bookcase { position: relative; }
+.room:not(.as-carousel) .bookcase::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none; mix-blend-mode: screen;
+  background:
+    repeating-linear-gradient(to bottom, rgba(255, 238, 205, .85) 0 2px, transparent 2px var(--row)),
+    radial-gradient(56% 70% at 50% 0, var(--lib-shelf-light), transparent 72%) 0 0 / 190px var(--row) repeat;
+}
+/* A brass rail along the top of the case, and the rolling ladder hooked on it (where there's room for it) */
+.case-rail, .case-ladder { display: none; }
+@media (min-width: 900px) {
+  .room:not(.as-carousel) .case-body { position: relative; }
+  .room:not(.as-carousel) .case-rail {
+    display: block; position: absolute; z-index: 3; top: 12px; left: 6px; right: 6px; height: 6px; border-radius: 3px; pointer-events: none;
+    background: linear-gradient(#f4d99c, #bb8d3d 55%, #7a561c); box-shadow: 0 3px 4px rgba(20, 10, 0, .45);
+  }
+  .room:not(.as-carousel) .case-rail::before, .room:not(.as-carousel) .case-rail::after {
+    content: ""; position: absolute; top: -5px; width: 7px; height: 15px; border-radius: 2px; background: linear-gradient(90deg, #7a561c, #e6c57c, #7a561c);
+  }
+  .room:not(.as-carousel) .case-rail::before { left: 4%; }
+  .room:not(.as-carousel) .case-rail::after { right: 4%; }
+  .room:not(.as-carousel) .case-ladder {
+    display: block; position: absolute; z-index: 3; top: 6px; right: 9%; bottom: -50px; width: 78px; pointer-events: none;
+    background:
+      linear-gradient(90deg, #6e4421, #b07c48 3px, #8a5a2e 7px, #5c3819 9px, transparent 9px calc(100% - 9px), #6e4421 calc(100% - 9px), #b07c48 calc(100% - 6px), #8a5a2e calc(100% - 2px), #5c3819),
+      repeating-linear-gradient(to bottom, transparent 0 32px, #a6713f 32px 35px, #7f522a 35px 39px, rgba(0, 0, 0, .35) 39px 41px, transparent 41px 46px);
+    clip-path: polygon(4% 0, 96% 0, 100% 100%, 0 100%);
+    filter: drop-shadow(7px 9px 6px rgba(15, 8, 2, .5));
+  }
+  .case-ladder i { position: absolute; top: -4px; width: 13px; height: 13px; border: 3px solid #d2ab5c; border-bottom-color: transparent; border-radius: 50%; }
+  .case-ladder i:first-child { left: -2px; }
+  .case-ladder i:last-child { right: -2px; }
+}
+/* A big potted plant on the floor beside the case, in a wide room */
+.lib-floor-plant { display: none; }
+@media (min-width: 1500px) {
+  .room:not(.as-carousel) .lib-floor-plant {
+    display: block; position: absolute; z-index: 1; bottom: calc(var(--floor-h) - 22px); left: calc(50% - 590px - 190px); width: 150px; pointer-events: none;
+    filter: drop-shadow(8px 12px 8px rgba(30, 15, 5, .38));
+  }
+  .lib-floor-plant svg { display: block; width: 100%; height: auto; }
+}
+@media (prefers-reduced-motion: reduce) { .lib-motes::before, .lib-motes::after { animation: none; } }
+
+/* ---------- The tab bar: Plan and My library, on glass along the bottom ---------- */
+:root { --tabbar-h: 68px; }
+.tabbar {
+  position: fixed; z-index: 15; left: 50%; bottom: calc(10px + var(--safe-bottom)); transform: translateX(-50%);
+  width: min(420px, calc(100% - 20px)); display: flex; gap: 4px; padding: 6px; border-radius: 26px;
+  background: color-mix(in oklab, var(--card) 62%, transparent); border: 1px solid color-mix(in oklab, var(--line-2) 70%, transparent);
+  -webkit-backdrop-filter: blur(18px) saturate(1.5); backdrop-filter: blur(18px) saturate(1.5); box-shadow: var(--lift-lg);
+  transition: transform .35s var(--ease-out), opacity .25s, visibility 0s;
+}
+.tabbar a {
+  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 7px 4px 6px; border-radius: 20px;
+  color: var(--ink-soft); text-decoration: none; font-size: .72rem; font-weight: 750; line-height: 1.15; transition: background-color .2s, color .2s;
+}
+.tabbar svg { width: 22px; height: 22px; }
+.tabbar a:hover:not([aria-current="page"]) { color: var(--ink); background: color-mix(in oklab, var(--ink) 7%, transparent); }
+.tabbar a[aria-current="page"] { color: var(--ink); background: color-mix(in oklab, var(--ink) 9%, transparent); }
+.tabbar a:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+/* Pages under the tab bar keep their last lines clear of it. */
+.app:has(.tabbar) .app-main:not(.full) { padding-bottom: calc(var(--tabbar-h) + 32px + var(--safe-bottom)); }
+/* While the room is being designed, the tab bar slides away so the panel can use the whole screen. */
+.app:has(.design-panel) .tabbar { transform: translate(-50%, calc(100% + 16px + var(--safe-bottom))); opacity: 0; visibility: hidden; pointer-events: none; transition: transform .35s var(--ease-out), opacity .25s, visibility 0s .35s; }
+
+/* ---------- The pinboard, framed in the bookcase's wood ---------- */
+.board {
+  position: relative; width: min(100%, 1040px); aspect-ratio: 2.3 / 1; border: 12px solid; border-radius: 18px;
+  border-color: var(--shelf-top) var(--shelf-front) var(--shelf-edge) var(--shelf-front);
+  box-shadow: inset 0 0 22px rgba(0, 0, 0, .24), var(--lift-lg);
+  overflow: hidden; user-select: none; -webkit-user-select: none;
+}
+.board-cork {
+  background-color: #c99b62;
+  background-image: radial-gradient(circle at 20% 30%, rgba(92, 52, 18, .38) 0 1px, transparent 1.6px), radial-gradient(circle at 70% 60%, rgba(255, 238, 205, .38) 0 1px, transparent 1.7px), radial-gradient(circle at 40% 80%, rgba(84, 46, 14, .3) 0 1.2px, transparent 1.9px);
+  background-size: 9px 9px, 13px 13px, 7px 11px;
+}
+.board-linen {
+  background-color: #e6dccb;
+  background-image: repeating-linear-gradient(0deg, rgba(110, 90, 60, .09) 0 1px, transparent 1px 3px), repeating-linear-gradient(90deg, rgba(110, 90, 60, .09) 0 1px, transparent 1px 3px);
+}
+.board-felt {
+  background-color: #3e5b51;
+  background-image: radial-gradient(circle at 30% 40%, rgba(255, 255, 255, .07) 0 1px, transparent 1.6px), radial-gradient(circle at 70% 70%, rgba(0, 0, 0, .14) 0 1px, transparent 1.6px);
+  background-size: 5px 5px, 7px 7px;
+}
+/* A slate with the ghosts of earlier writing wiped across it */
+.board-chalk {
+  background-color: #2c3732;
+  background-image:
+    radial-gradient(38% 14% at 62% 34%, rgba(255, 255, 255, .055), transparent 70%),
+    radial-gradient(30% 10% at 30% 66%, rgba(255, 255, 255, .045), transparent 70%),
+    radial-gradient(22% 8% at 78% 72%, rgba(255, 255, 255, .04), transparent 70%),
+    radial-gradient(120% 80% at 28% 18%, rgba(255, 255, 255, .08), transparent 60%),
+    radial-gradient(90% 70% at 82% 92%, rgba(255, 255, 255, .06), transparent 60%);
+}
+/* A fridge door: brushed steel, catching the lamp's light towards the top */
+.board-steel {
+  background-color: #c9ced2;
+  background-image:
+    radial-gradient(70% 60% at 30% 0%, rgba(255, 255, 255, .55), transparent 70%),
+    linear-gradient(180deg, rgba(255, 255, 255, .25), rgba(0, 0, 0, .1)),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, .16) 0 1px, transparent 1px 3px, rgba(0, 0, 0, .035) 3px 4px);
+}
+/* The ledge along the foot of a chalkboard, with a couple of sticks left on it */
+.board-tray {
+  position: absolute; z-index: 0; left: 0; right: 0; bottom: 0; height: 11px; pointer-events: none;
+  background: linear-gradient(var(--shelf-top), var(--shelf-front)); box-shadow: 0 -3px 6px -2px rgba(0, 0, 0, .35);
+}
+.board-tray i { position: absolute; bottom: 6px; height: 6px; border-radius: 2px; background: linear-gradient(#fbf8ef, #d9d4c5); box-shadow: 1px 1px 1px rgba(0, 0, 0, .3); }
+.board-tray i:first-child { left: 14%; width: 30px; transform: rotate(-3deg); }
+.board-tray i:last-child { left: 22%; width: 18px; background: linear-gradient(#f6c4c4, #d99c9c); }
+/* What's written on the board: a paper label, or chalk straight on the chalkboard */
+.board-title {
+  position: absolute; z-index: 1; top: clamp(10px, 2vw, 18px); left: clamp(12px, 2.4vw, 24px); margin: 0; max-width: 70%;
+  padding: 4px 16px 6px; background: #fbf7ee; color: #1d2a55; transform: rotate(-1.6deg); box-shadow: 0 1px 2px rgba(0, 0, 0, .2), 3px 6px 8px -4px rgba(0, 0, 0, .3);
+  font-family: var(--f-hand); font-size: clamp(1.15rem, 2.3vw, 1.9rem); line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.board-chalk .board-title {
+  background: none; box-shadow: none; color: rgba(246, 243, 234, .9); padding-bottom: 10px;
+  text-shadow: 0 0 1px rgba(255, 255, 255, .45), .5px .5px 0 rgba(246, 243, 234, .25), -.5px 0 0 rgba(246, 243, 234, .2);
+  text-decoration: underline; text-decoration-color: rgba(246, 243, 234, .45); text-decoration-thickness: 2px; text-underline-offset: 7px;
+}
+
+/* ---------- The board as a collection: a holder for every country, a continent at a time ----------
+   Each holder is a shallow round dent with a dashed rim and the country's code; a magnet earned there sits in it.
+   The board grows to fit them all rather than keeping its shape. */
+.board.holders-board { aspect-ratio: auto; padding: clamp(12px, 2vw, 20px) clamp(12px, 2.4vw, 24px) clamp(18px, 2.6vw, 26px); --holder: rgba(70, 42, 16, .42); --holder-ink: rgba(70, 42, 16, .62); --holder-dent: rgba(70, 42, 16, .1); }
+.board-felt.holders-board, .board-chalk.holders-board { --holder: rgba(246, 243, 234, .3); --holder-ink: rgba(246, 243, 234, .55); --holder-dent: rgba(0, 0, 0, .16); }
+.board-steel.holders-board { --holder: rgba(40, 52, 64, .32); --holder-ink: rgba(40, 52, 64, .55); --holder-dent: rgba(40, 52, 64, .08); }
+.board-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 6px; }
+.holders-board .board-title { position: static; min-width: 0; }
+/* How many countries so far, on a paper tag */
+.board-tally {
+  flex: none; padding: 3px 12px 5px; background: #fbf7ee; color: #1d2a55; transform: rotate(2deg);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .2), 3px 6px 8px -4px rgba(0, 0, 0, .3); font-family: var(--f-hand); font-size: clamp(1rem, 1.6vw, 1.25rem); line-height: 1.2;
+}
+.board-tally b { font-size: 1.15em; }
+.board-chalk .board-tally { background: none; box-shadow: none; color: rgba(246, 243, 234, .88); }
+.board-note { margin: 8px 0 2px; font-family: var(--f-hand); font-size: clamp(1rem, 1.6vw, 1.2rem); color: var(--holder-ink); }
+
+/* Showing the whole world or one continent: a row of tabs, the chosen one a paper label stuck on the board */
+.board-tabs { display: flex; gap: 6px; margin: 8px -4px 0; padding: 2px 4px 6px; overflow-x: auto; scrollbar-width: none; overscroll-behavior-x: contain; }
+.board-tabs::-webkit-scrollbar { display: none; }
+/* Dragged along with a mouse, as a finger swipes it on a phone (lib/dragScroll.ts) */
+@media (hover: hover) and (pointer: fine) { .board-tabs, .dp-mag-row { cursor: grab; } }
+.board-tabs.dragging, .dp-mag-row.dragging { cursor: grabbing; user-select: none; -webkit-user-select: none; }
+.board-tabs.dragging button, .dp-mag-row.dragging button { pointer-events: none; }
+.board-tabs button {
+  flex: none; display: inline-flex; align-items: baseline; gap: 5px; min-height: 32px; padding: 5px 12px; border: 1.5px dashed var(--holder); border-radius: 999px;
+  background: none; color: var(--holder-ink); font-size: .82rem; font-weight: 750; transition: background-color .2s, color .2s, border-color .2s, transform .25s var(--ease-out);
+}
+.board-tabs button span { font-size: .72rem; font-weight: 700; font-variant-numeric: tabular-nums; opacity: .75; }
+.board-tabs button:hover { transform: translateY(-1px); border-style: solid; }
+.board-tabs button[aria-pressed="true"] {
+  border: 1.5px solid transparent; background: #fbf7ee; color: #1d2a55; transform: rotate(-1deg);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .2), 2px 4px 6px -3px rgba(0, 0, 0, .3);
+}
+.board-tabs button:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.holders { margin-top: clamp(10px, 1.6vw, 16px); }
+.holders-h { margin: 0 0 6px; font-size: .7rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--holder-ink); }
+.holders-h span { margin-left: 4px; font-weight: 700; font-variant-numeric: tabular-nums; opacity: .8; }
+.holders-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(36px, 1fr)); gap: 6px; }
+.holder {
+  position: relative; aspect-ratio: 1; border: 1.5px dashed var(--holder); border-radius: 50%; display: grid; place-items: center;
+  background: radial-gradient(circle at 50% 40%, transparent 55%, var(--holder-dent)); color: var(--holder-ink);
+  font-size: clamp(.5rem, .9vw, .62rem); font-weight: 800; letter-spacing: .04em;
+}
+.holder.filled { border-color: transparent; background: none; }
+
+/* A souvenir magnet in its holder, a little bigger than the dent so it covers the rim. Two shadows: a thin hard one for
+   the magnet's own thickness, and a soft one where it stands off the board. */
+.magnet {
+  position: absolute; inset: -9%; padding: 0; border: 0; border-radius: 50%; background: none; cursor: pointer; -webkit-tap-highlight-color: transparent;
+  filter: drop-shadow(0 1px 0 rgba(60, 50, 40, .35)) drop-shadow(1px 3px 3px rgba(0, 0, 0, .32));
+  transition: transform .25s var(--ease-out), filter .25s var(--ease-out);
+}
+.magnet svg { display: block; width: 100%; height: 100%; pointer-events: none; }
+.magnet-label { font-family: var(--f-ui); font-size: 12.5px; font-weight: 800; letter-spacing: .06em; fill: #1d2a55; }
+.magnet:hover { z-index: 2; transform: translateY(-2px) scale(1.12); filter: drop-shadow(0 1px 0 rgba(60, 50, 40, .35)) drop-shadow(3px 7px 6px rgba(0, 0, 0, .32)); }
+.magnet:focus-visible { z-index: 2; outline: 3px solid var(--focus); outline-offset: 2px; }
+/* A magnet this device hasn't shown before drops into its holder, one after another */
+.magnet.fresh { animation: magnet-in .6s var(--ease-out) both; animation-delay: calc(var(--i, 0) * 70ms); }
+@keyframes magnet-in {
+  0% { opacity: 0; transform: translateY(-40%) scale(1.6) rotate(-14deg); }
+  60% { opacity: 1; transform: translateY(4%) scale(.94) rotate(3deg); }
+  100% { transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .magnet, .magnet:hover { transition: none; transform: none; }
+  .magnet.fresh { animation: none; }
+}
+
+
+/* ---------- The bookcase: things on top, a crown, shelves inside its sides, and a plinth on the floor ---------- */
+.case { position: relative; max-width: 1180px; margin: 0 auto; }
+.case-top { position: relative; height: 150px; margin: 0 5%; }
+.decor { position: absolute; bottom: 0; width: calc(var(--dw) * 1.35px); transform: translateX(-50%); }
+.decor.held { z-index: 4; }
+.decor-btn { display: block; width: 100%; padding: 0; border: 0; background: none; cursor: grab; touch-action: none; filter: drop-shadow(3px 4px 3px rgba(30, 70, 130, .28)); transition: transform .3s var(--ease-out); }
+.decor-btn svg { display: block; width: 100%; height: auto; }
+.decor-btn:hover { transform: translateY(-3px); }
+.decor.held .decor-btn { cursor: grabbing; transform: translateY(-8px); transition: none; }
+.decor-btn:focus-visible { outline: 3px solid var(--focus); outline-offset: 4px; border-radius: 4px; }
+.decor-x { top: -10px; right: -14px; }
+/* A minifigure's name, written just above its head (lower for a kid, whose head sits lower in its box); a soft halo in the wall's colour keeps it readable over anything behind */
+.fig-name {
+  position: absolute; left: 50%; bottom: calc(100% - var(--sink, 0%) + 4px); z-index: 1; transform: translateX(-50%);
+  max-width: 110px; padding: 0 2px; color: var(--ink);
+  font-family: var(--f-hand); font-size: .9rem; line-height: 1.15; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  text-shadow: 0 0 3px var(--wall), 0 0 6px var(--wall); pointer-events: none;
+}
+.fig-name.small { max-width: 70px; font-size: .72rem; bottom: calc(100% - var(--sink, 0%) + 2px); }
+.decor.held .fig-name { transform: translate(-50%, -8px); }
+@media (max-width: 720px) { .fig-name:not(.small) { max-width: 84px; font-size: .78rem; } }
+.case-crown {
+  position: relative; z-index: 1; height: 24px; margin: 0 -12px; border-radius: 3px 3px 0 0;
+  background: linear-gradient(var(--shelf-top) 0 7px, var(--shelf-front) 7px calc(100% - 4px), var(--shelf-edge) calc(100% - 4px));
+  box-shadow: 0 8px 12px -8px rgba(0, 0, 0, .4);
+}
+.case-body {
+  border-inline: 16px solid var(--shelf-front); background-color: var(--case-back);
+  box-shadow: inset 0 16px 20px -14px rgba(0, 0, 0, .4), inset 12px 0 16px -12px rgba(0, 0, 0, .3), inset -12px 0 16px -12px rgba(0, 0, 0, .3);
+}
+.case-shelf { position: relative; }
+/* A brass label plate on the front of each shelf's last plank */
+.case-plate {
+  position: absolute; z-index: 2; bottom: 2px; left: 50%; transform: translateX(-50%); margin: 0; padding: 2px 12px 1px; border-radius: 2px; white-space: nowrap;
+  font-size: .64rem; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; color: #3b2a0c;
+  background: linear-gradient(#ecd492, #b98f3e); box-shadow: inset 0 0 0 1px rgba(80, 55, 10, .45), 0 1px 1px rgba(0, 0, 0, .35);
+}
+.case-plate span { opacity: .75; }
+.case-base { height: 28px; margin: 0 -6px; border-radius: 0 0 2px 2px; background: linear-gradient(var(--shelf-front), var(--shelf-edge)); box-shadow: inset 0 3px 0 rgba(255, 255, 255, .12); }
+
+/* Each row of books is a fixed height, so a plank can be painted under every row however many books wrap. */
+.bookcase {
+  --row: 310px; --plank: 18px; --plank-at: calc(var(--row) - var(--plank));
+  list-style: none; margin: 0; padding: 0 clamp(10px, 2vw, 22px); display: flex; flex-wrap: wrap; align-items: flex-end;
+  /* The planks, then the soft shadow each casts on the back of the case under it (from the second row down) */
+  background: repeating-linear-gradient(to bottom, transparent 0 var(--plank-at), var(--shelf-top) var(--plank-at) calc(var(--plank-at) + 5px), var(--shelf-front) calc(var(--plank-at) + 5px) calc(var(--row) - 3px), var(--shelf-edge) calc(var(--row) - 3px) var(--row)),
+    repeating-linear-gradient(to bottom, var(--shelf-shade), transparent 16px, transparent var(--row)) 0 var(--row) / 100% calc(100% - var(--row)) no-repeat;
+}
+.bookcase > li { height: var(--row); padding: 0 1.5px var(--plank); display: flex; align-items: flex-end; }
+.spine, .spine-new { width: var(--w); height: calc((var(--plank-at) - 34px) * var(--h)); flex: none; }
+.spine {
+  position: relative; display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 16px 0 18px; text-decoration: none; border-radius: 3px 3px 1px 1px;
+  background-color: var(--cloth); background-image: var(--tex), linear-gradient(90deg, rgba(0, 0, 0, .32), rgba(255, 255, 255, .13) 26%, rgba(255, 255, 255, .04) 55%, rgba(0, 0, 0, .36));
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .1), 3px 0 6px -2px rgba(30, 70, 130, .28);
+  transition: transform .45s var(--ease-out), box-shadow .45s var(--ease-out);
+}
+/* Taking a book down: it slides up off the plank. */
+/* It comes in front of everything on the case (the crown, the brass rail, the ladder, the shelf lights), so its
+   title card is never hidden behind them. */
+.spine:hover, .spine:focus-visible { z-index: 6; transform: translateY(-16px); box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .1), 4px 14px 18px -8px rgba(30, 70, 130, .4); }
+.spine:focus-visible { outline-offset: 3px; }
+/* Its place while the book is out on the reading table */
+.spine.taken { visibility: hidden; transition: none; }
+.spine-band {
+  flex: none; width: 68%; height: 7px; opacity: .9;
+  background: linear-gradient(90deg, var(--foil-lo), var(--foil-hi), var(--foil-lo)) top / 100% 2px no-repeat, linear-gradient(90deg, var(--foil-lo), var(--foil-hi), var(--foil-lo)) bottom / 100% 2px no-repeat;
+}
+.spine-title {
+  flex: 1; min-height: 0; writing-mode: vertical-rl; font-family: var(--f-cover); font-style: italic; font-weight: 500;
+  font-size: clamp(13px, calc(var(--w) * .3), 17px); line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 2px 0;
+}
+.spine[data-titlefont="modern"] .spine-title { font-style: normal; font-weight: 820; text-transform: uppercase; letter-spacing: .05em; font-stretch: 108%; font-size: clamp(11px, calc(var(--w) * .24), 14px); }
+.spine[data-titlefont="script"] .spine-title { font-style: normal; font-size: clamp(16px, calc(var(--w) * .36), 22px); }
+.spine[data-titlefont="typewriter"] .spine-title { font-size: clamp(12px, calc(var(--w) * .26), 15px); }
+.spine[data-titlefont="typewriter"] .spine-title, .spine[data-titlefont="hand"] .spine-title { font-style: normal; }
+/* The title card a book shows as it comes off the shelf */
+.spine-tag {
+  position: absolute; z-index: 3; bottom: calc(100% + 12px); left: 50%; transform: translate(calc(-50% + var(--nudge, 0px)), 6px); opacity: 0; pointer-events: none;
+  display: flex; flex-direction: column; gap: 2px; padding: 8px 12px; border-radius: 4px; white-space: nowrap;
+  background: var(--ink); color: var(--bg); font-size: .78rem; font-weight: 600; box-shadow: var(--lift); transition: opacity .2s, transform .35s var(--ease-out);
+}
+.spine-tag b { font-size: .9rem; font-weight: 800; }
+.spine:hover .spine-tag, .spine:focus-visible .spine-tag { opacity: 1; transform: translate(calc(-50% + var(--nudge, 0px)), 0); }
+@media (hover: none) { .spine-tag { display: none; } }
+/* An empty slot at the end of the shelf for the next book */
+.spine-new {
+  display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 16px 0; border: 2px dashed var(--line-2); border-radius: 3px;
+  background: none; color: var(--ink-soft); font: inherit; text-decoration: none; transition: border-color .2s, color .2s, transform .35s var(--ease-out);
+}
+.spine-new:hover { border-color: var(--ink-faint); color: var(--ink); transform: translateY(-6px); }
+.spine-new svg { width: 20px; height: 20px; flex: none; }
+.spine-new span { writing-mode: vertical-rl; font-size: .74rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+/* A bent-steel bookend holding the row up */
+.bookcase > .bookend { padding-left: 4px; }
+.bookend::before { content: ""; display: block; width: 7px; height: 96px; border-radius: 3px 3px 0 0; background: linear-gradient(90deg, #5d6872, #8d98a1 45%, #4b555e); box-shadow: 3px 0 5px -2px rgba(30, 70, 130, .3); }
+
+/* ---------- Library or carousel: a two-way switch beside the greeting ---------- */
+/* The Library / Carousel toggle, centred above the room, with Edit (and in the room, Design) beside it */
+.room-head { display: flex; justify-content: center; }
+.head-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px; }
+.head-btn {
+  display: inline-grid; place-items: center; width: 48px; min-height: 48px; padding: 0; border-radius: 50%;
+  background: color-mix(in oklab, var(--card) 80%, transparent); border: 1px solid var(--line-2); box-shadow: 0 6px 16px -12px rgba(30, 70, 130, .45);
+  color: var(--ink); font: inherit; font-size: .86rem; font-weight: 750; transition: background-color .2s, color .2s;
+}
+.head-btn svg { width: 19px; height: 19px; flex: none; }
+.head-btn:hover:not(:disabled, [aria-pressed="true"]) { background: var(--card); }
+.head-btn:is([aria-pressed="true"], [aria-expanded="true"]) { background: var(--ink); border-color: var(--ink); color: var(--bg); }
+.head-btn:disabled { opacity: .5; }
+.head-btn:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+/* Opens leftward from the button's right edge: the buttons sit right of centre, so a centred menu ran off a phone screen. */
+.head-row .menu-pop { left: auto; right: 0; translate: none; min-width: 210px; max-width: calc(100vw - 32px); }
+.head-row .menu-pop button { color: var(--ink); font: inherit; font-weight: 650; }
+.view-seg {
+  flex: none; display: inline-flex; gap: 2px; padding: 4px; border-radius: 999px;
+  background: color-mix(in oklab, var(--card) 80%, transparent); border: 1px solid var(--line-2); box-shadow: 0 6px 16px -12px rgba(30, 70, 130, .45);
+}
+.view-seg button {
+  display: inline-flex; align-items: center; gap: 7px; min-height: 38px; padding: 0 15px 0 12px; border: 0; border-radius: 999px;
+  background: none; color: var(--ink-soft); font: inherit; font-size: .86rem; font-weight: 750; transition: background-color .2s, color .2s;
+}
+.view-seg svg { width: 18px; height: 18px; flex: none; }
+.view-seg button:hover:not([aria-pressed="true"], [aria-selected="true"]) { color: var(--ink); background: color-mix(in oklab, var(--ink) 7%, transparent); }
+.view-seg button:is([aria-pressed="true"], [aria-selected="true"]) { background: var(--ink); color: var(--bg); }
+.view-seg button:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+/* ---------- The carousel: every book face-out in a row, the one in the middle in front ---------- */
+/* It runs the width of the room (up to the dock), centred under the greeting, standing in the space above the floor. */
+.carousel { --cw: clamp(210px, 22vw, 290px); margin: auto calc(var(--room-pad) * -1); padding-bottom: clamp(20px, 4vh, 44px); }
+.cs-track {
+  position: relative; list-style: none; margin: 0; padding: 22px calc(50% - var(--cw) / 2) 6px; display: flex; gap: clamp(10px, 2.6vw, 34px);
+  overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; scrollbar-width: none;
+}
+.cs-track::-webkit-scrollbar { display: none; }
+/* The row fades out at either side rather than stopping at a hard edge (or against the dock). */
+.cs-track { --fade: clamp(20px, 6vw, 96px); -webkit-mask-image: linear-gradient(90deg, transparent, #000 var(--fade), #000 calc(100% - var(--fade)), transparent); mask-image: linear-gradient(90deg, transparent, #000 var(--fade), #000 calc(100% - var(--fade)), transparent); }
+.cs-slide {
+  flex: none; width: var(--cw); scroll-snap-align: center; display: flex; flex-direction: column; align-items: center; gap: 18px;
+  transform: scale(.84); transform-origin: 50% 40%; opacity: .55; transition: transform .5s var(--ease-out), opacity .4s;
+}
+.cs-slide.on { transform: none; opacity: 1; }
+/* The book: its cover as designed, with the block of pages showing past the fore-edge */
+.cs-book {
+  position: relative; isolation: isolate; display: block; width: 100%; border-radius: 3px 5px 5px 3px; text-decoration: none; -webkit-tap-highlight-color: transparent;
+  box-shadow: 0 2px 4px rgba(30, 70, 130, .18), 0 34px 40px -24px rgba(30, 70, 130, .6); transition: transform .45s var(--ease-out), box-shadow .45s var(--ease-out);
+}
+.cs-book::after {
+  content: ""; position: absolute; z-index: -1; top: 1.6%; bottom: 1.6%; right: -6px; width: 12px; border-radius: 0 3px 3px 0;
+  background: repeating-linear-gradient(90deg, #f4efe3 0 1px, #e2dacb 1px 2px); box-shadow: 3px 3px 6px -3px rgba(0, 0, 0, .3);
+}
+.cs-book .cface { width: 100%; }
+.cs-slide.on .cs-book:hover, .cs-book:focus-visible { transform: translateY(-10px); box-shadow: 0 2px 4px rgba(30, 70, 130, .18), 0 44px 46px -26px rgba(30, 70, 130, .62); }
+.cs-book:focus-visible { outline: 3px solid var(--focus); outline-offset: 5px; }
+/* Its place while the book is open */
+.cs-book.taken { visibility: hidden; transition: none; }
+.cs-meta { display: flex; flex-direction: column; align-items: center; gap: 3px; width: 100%; min-height: 66px; text-align: center; }
+.cs-meta b { max-width: 100%; font-size: 1.06rem; font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cs-meta span { font-size: .82rem; color: var(--ink-soft); }
+.cs-meta .cs-shared { font-weight: 700; color: var(--ink-faint); }
+/* The space after the last book */
+.cs-new {
+  width: 100%; aspect-ratio: 1 / 1.32; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;
+  border: 2px dashed var(--line-2); border-radius: 4px; background: color-mix(in oklab, var(--card) 45%, transparent); color: var(--ink-soft);
+  font: inherit; text-decoration: none; cursor: pointer; transition: border-color .2s, color .2s, transform .45s var(--ease-out);
+}
+.cs-new svg { width: 28px; height: 28px; }
+.cs-new span { font-size: .8rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+.cs-slide.on .cs-new:hover { border-color: var(--ink-faint); color: var(--ink); transform: translateY(-6px); }
+/* Dragged with a mouse: a grab hand, and no snapping while it follows the pointer (it settles on a book when let go). */
+@media (hover: hover) and (pointer: fine) { .cs-track { cursor: grab; } }
+.cs-track.dragging { cursor: grabbing; scroll-snap-type: none; user-select: none; }
+.cs-track.dragging .cs-book { pointer-events: none; }
+/* Under the row: where you are in it */
+.cs-nav { display: flex; align-items: center; justify-content: center; gap: 14px; margin-top: 14px; }
+.cs-dots { display: flex; align-items: center; }
+.cs-dot { min-width: 20px; height: 28px; padding: 0 3px; border: 0; background: none; display: grid; place-items: center; }
+.cs-dot::before { content: ""; width: 7px; height: 7px; border-radius: 999px; background: var(--ink); opacity: .25; transition: width .35s var(--ease-out), opacity .2s; }
+.cs-dot[aria-current="true"]::before { width: 22px; opacity: 1; }
+.cs-dot:hover::before { opacity: .55; }
+.cs-dot[aria-current="true"]:hover::before { opacity: 1; }
+.cs-count { min-width: 60px; text-align: center; font-weight: 750; font-variant-numeric: tabular-nums; color: var(--ink-soft); }
+@media (prefers-reduced-motion: reduce) { .cs-slide, .cs-book, .cs-new, .cs-dot::before { transition: none; } }
+
+/* ---------- A book taken down: it flies to the middle, turns to show its cover, and opens ---------- */
+@property --ft { syntax: "<length>"; inherits: true; initial-value: 0px; }
+dialog:has(> .peek) { overflow: hidden; }
+dialog:has(> .peek)::backdrop { animation: veil-in .5s ease both; }
+@keyframes veil-in { from { opacity: 0; } }
+.fly { position: fixed; left: 50%; top: calc(50% - var(--lift, 0px)); width: var(--fw); height: var(--fh); transform: translate(-50%, -50%); perspective: calc(var(--fw) * 4); pointer-events: none; }
+.peek.read .fly { animation: fly-off .3s .3s forwards; }
+@keyframes fly-off { to { opacity: 0; } }
+.fly-book { position: absolute; inset: 0; transform-style: preserve-3d; }
+.fly-face { position: absolute; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+.fly-hinge, .fly-cover { position: absolute; inset: 0; transform-style: preserve-3d; }
+.fly-hinge { transform: translateZ(calc(var(--ft) / 2)); }
+.fly-cover { transform-origin: left center; }
+.fly-front { inset: 0; }
+.fly-front .cface { width: 100%; height: 100%; aspect-ratio: auto; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .06), inset 0 0 40px rgba(0, 0, 0, .2); }
+/* The inside of the cover: an endpaper printed in the book's own cloth colour */
+.fly-inside {
+  inset: 0; transform: rotateY(180deg); border-radius: 3px 1px 1px 3px; background-color: var(--paper-2);
+  background-image: repeating-linear-gradient(45deg, color-mix(in oklab, var(--cloth) 16%, transparent) 0 2px, transparent 2px 10px), repeating-linear-gradient(-45deg, color-mix(in oklab, var(--cloth) 10%, transparent) 0 2px, transparent 2px 10px);
+  box-shadow: inset -14px 0 18px -12px rgba(0, 0, 0, .3);
+}
+.fly-back { inset: 0; transform: rotateY(180deg) translateZ(calc(var(--ft) / 2)); background-color: var(--cloth); background-image: var(--tex); border-radius: 3px; }
+.fly-leaf { inset: 1.2% 1.6% 1.2% 0; transform: translateZ(calc(var(--ft) / 2 - 1px)); background: var(--paper); box-shadow: inset 16px 0 22px -14px rgba(0, 0, 0, .25); }
+.fly-edge { top: 1.2%; height: 97.6%; left: calc(var(--fw) - var(--ft) / 2); width: var(--ft); transform: rotateY(90deg); background: repeating-linear-gradient(90deg, #f4efe3 0 1px, #e2dacb 1px 2px); }
+.fly-spine {
+  top: 0; height: 100%; left: calc(var(--ft) / -2); width: var(--ft); transform: rotateY(-90deg); display: grid; place-items: center; overflow: hidden; border-radius: 2px;
+  background-color: var(--cloth); background-image: var(--tex), linear-gradient(90deg, rgba(0, 0, 0, .3), rgba(255, 255, 255, .12) 30%, rgba(0, 0, 0, .34));
+}
+.fly-spine span { writing-mode: vertical-rl; font-family: var(--f-cover); font-style: italic; font-size: calc(var(--ft) * .42); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-height: 80%; }
+
+/* The open spread, sitting exactly where the opened book was */
+.peek-book.book {
+  position: fixed; left: 50%; top: calc(50% - var(--lift, 0px)); width: calc(var(--fw) * 2); height: var(--fh); max-width: none; margin: 0; transform: translate(-50%, -50%);
+  overflow: hidden; animation: spread-in .35s ease both;
+}
+@keyframes spread-in { from { opacity: 0; } }
+.peek-book .left, .peek-book .right { overflow-y: auto; overscroll-behavior: contain; }
+.peek-book .left { justify-content: center; }
+.peek-book .mount img { max-height: calc(var(--fh) - 210px); }
+.peek-book h2 { padding-right: 0; font-size: clamp(1.6rem, 2.6vw, 2.3rem); }
+.peek-book .story { font-size: 1rem; }
+.peek-endpaper { flex: 1; display: grid; place-content: center; text-align: center; gap: 6px; }
+.peek-ex { margin: 0; font-family: var(--f-hand); font-size: 1.5rem; color: var(--ink-faint); }
+.peek-who { margin: 0; font-family: var(--heading); font-style: var(--heading-style); font-size: 1.6rem; }
+.peek-empty { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; }
+.peek-empty p { margin: 0; color: var(--ink-soft); }
+/* ---------- On the phone: the book open flat with both its pages, like a real book ----------
+   The opening is laid out at the reader's own size (two 440 × 581 pages, as on a computer) and scaled to fit the
+   screen (--k), in the book's cloth boards with the light on its pages (.pd-case, .pd-sheen, shared with the design
+   preview). Tapping a page brings it close: the book grows until that page fills the width, and slides (--px) to show
+   it. A page turns over on a sheet hinged at the spine (Peek.tsx). */
+.pspread {
+  --fw: 440px; --fh: 581px; --pv-bw: 440px; --edge: 2.4px;
+  position: fixed; left: 50%; top: calc(50% - var(--lift, 0px)); width: calc(var(--fw) * 2); height: var(--fh);
+  transform: translate(-50%, -50%) translateX(var(--px, 0px)) scale(var(--k, .4)); perspective: 2600px;
+  transition: transform .5s var(--ease-out); animation: spread-in .35s ease both;
+}
+/* A finger swiping sideways turns the page; up and down still scrolls a long page */
+.pspread, .pspread * { touch-action: pan-y; }
+.plive, .pflip-under { position: absolute; inset: 0; }
+.plive { z-index: 1; }
+.pspread .pd-sheen { z-index: 4; }
+/* Both pages showing: a tap on either brings it close */
+.pzoom { position: absolute; z-index: 5; top: 0; bottom: 0; width: 50%; padding: 0; border: 0; background: none; cursor: zoom-in; -webkit-tap-highlight-color: transparent; }
+.pzoom.l { left: 0; }
+.pzoom.r { right: 0; }
+.pzoom:focus-visible { outline: 6px solid var(--focus); outline-offset: -6px; }
+/* The sheet going over: this opening's page on its front, the next opening's on its back */
+.pflip { position: absolute; z-index: 3; top: 0; width: 50%; height: 100%; transform-style: preserve-3d; pointer-events: none; }
+.pflip.fwd { left: 50%; transform-origin: 0 50%; }
+.pflip.back { left: 0; transform-origin: 100% 50%; }
+.pflip-face { position: absolute; inset: 0; overflow: hidden; backface-visibility: hidden; -webkit-backface-visibility: hidden; background: var(--paper); }
+.pflip-back { transform: rotateY(180deg); }
+.pflip-in { position: absolute; top: 0; left: 0; width: 200%; height: 100%; }
+.pflip.fwd > .pflip-front .pflip-in, .pflip.back > .pflip-back .pflip-in { left: -100%; }
+/* The paper darkening as it bends away from the light at the spine */
+.pflip-face::after { content: ""; position: absolute; inset: 0; z-index: 2; pointer-events: none; }
+.pflip.fwd > .pflip-front::after, .pflip.back > .pflip-back::after { background: linear-gradient(90deg, rgba(0, 0, 0, .28), rgba(0, 0, 0, .06) 18%, transparent 40%, rgba(0, 0, 0, .05)); }
+.pflip.fwd > .pflip-back::after, .pflip.back > .pflip-front::after { background: linear-gradient(270deg, rgba(0, 0, 0, .28), rgba(0, 0, 0, .06) 18%, transparent 40%, rgba(0, 0, 0, .05)); }
+.pb-near[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+/* While writing: zoom out / zoom in, just under the book's foot (--bookh is the book's height on screen), moving with it */
+.pzoombar {
+  position: fixed; z-index: 2; left: 50%; top: calc(50% - var(--lift, 0px) + var(--bookh) / 2 + 12px); transform: translateX(-50%);
+  display: flex; gap: 2px; padding: 4px; border-radius: 999px; white-space: nowrap;
+  background: color-mix(in oklab, var(--card) 80%, transparent); border: 1px solid color-mix(in oklab, var(--line-2) 70%, transparent);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4); backdrop-filter: blur(16px) saturate(1.4); box-shadow: 0 10px 24px -12px rgba(10, 18, 26, .45); color: var(--ink);
+  transition: top .5s var(--ease-out); animation: spread-in .3s ease both;
+}
+.pzoombar button {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 14px 0 11px; border: 0; border-radius: 999px;
+  background: none; color: var(--ink-soft); font: inherit; font-size: .82rem; font-weight: 750; transition: background-color .2s, color .2s;
+}
+.pzoombar button svg { width: 17px; height: 17px; }
+.pzoombar button[aria-pressed="true"] { background: var(--ink); color: var(--bg); opacity: 1; }
+.pzoombar button:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { .pspread, .pzoombar { transition: none; } }
+
+/* ---------- Designing the library ---------- */
+/* A drawer of frosted paper that slides out beside the dock */
+.design-panel {
+  position: fixed; z-index: 14; top: calc(64px + var(--safe-top) + 14px); bottom: 14px; right: clamp(12px, 1.6vw, 24px);
+  width: min(400px, calc(100vw - 48px)); display: flex; flex-direction: column; overflow: hidden; padding: 18px 18px 0;
+  border-radius: 16px; border: 1px solid var(--line); background: color-mix(in oklab, var(--card) 86%, transparent);
+  -webkit-backdrop-filter: blur(20px) saturate(1.4); backdrop-filter: blur(20px) saturate(1.4); box-shadow: var(--lift-lg);
+  animation: drawer-in .4s var(--ease-out);
+}
+@keyframes drawer-in { from { opacity: 0; transform: translateX(28px); } }
+/* The title and Done on one line, whether it's saved under the title */
+.dp-head { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 2px 12px; flex: none; }
+.dp-head .sec-h { margin: 0; font-size: 1.2rem; }
+.dp-head .save-state { grid-row: 2; font-size: .78rem; min-height: 1.2em; }
+.dp-head .btn { grid-column: 2; grid-row: 1 / span 2; }
+/* Only the options scroll: the preview and the toggle stay put above them. */
+.dp-body {
+  flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; margin: 0 -18px; padding: 0 18px 22px;
+  scrollbar-width: thin; scrollbar-color: color-mix(in oklab, var(--ink) 16%, transparent) transparent;
+}
+/* Safari, which ignores the two lines above: a hairline thumb with no track */
+.dp-body::-webkit-scrollbar { display: block; width: 6px; }
+.dp-body::-webkit-scrollbar-track { background: transparent; }
+.dp-body::-webkit-scrollbar-thumb { background: color-mix(in oklab, var(--ink) 16%, transparent); border: 1px solid transparent; border-radius: 99px; background-clip: padding-box; }
+/* The dim behind the panel: only on a phone, where the panel covers the room anyway (on a computer the room stays bright to drag things in) */
+.design-shade { display: none; }
+.dp-grid { margin-top: 18px; display: grid; grid-template-columns: 1fr; gap: 22px; align-items: start; }
+.dp-grid > .hint { margin: -8px 0 0; }
+
+/* ---------- The preview at the top of the panel ---------- */
+.dp-preview {
+  flex: none; margin-top: 14px; padding: 12px; border-radius: 12px; border: 1px solid var(--line);
+  background: var(--haze), var(--ridges) 50% 100% / 100% auto no-repeat, var(--sky);
+}
+.pv-empty { position: absolute; inset: 0; display: grid; place-items: center; font-family: var(--f-hand); font-size: .95rem; opacity: .6; pointer-events: none; }
+.pv-board {
+  position: relative; aspect-ratio: 16 / 9; border: 6px solid; border-radius: 8px; overflow: hidden;
+  border-color: var(--shelf-top) var(--shelf-front) var(--shelf-edge) var(--shelf-front); box-shadow: inset 0 0 12px rgba(0, 0, 0, .28), 0 10px 16px -10px rgba(30, 70, 130, .5);
+}
+.pv-board.board-chalk .pv-empty, .pv-board.board-felt .pv-empty { color: #f6f3ea; }
+.pv-title {
+  position: absolute; z-index: 1; top: 6px; left: 8px; max-width: 70%; padding: 1px 8px 2px; background: #fbf7ee; color: #1d2a55; transform: rotate(-1.6deg);
+  font-family: var(--f-hand); font-size: .82rem; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; box-shadow: 0 1px 2px rgba(0, 0, 0, .25);
+}
+.board-chalk .pv-title { background: none; box-shadow: none; color: rgba(246, 243, 234, .9); text-decoration: underline; text-decoration-color: rgba(246, 243, 234, .45); text-underline-offset: 3px; }
+.pv-holders .pv-dots { position: absolute; inset: 26px 8px 8px; display: grid; grid-template-columns: repeat(22, 1fr); align-content: start; gap: 2px; }
+.pv-dots i { aspect-ratio: 1; border: 1px dashed rgba(70, 42, 16, .4); border-radius: 50%; }
+.board-felt .pv-dots i, .board-chalk .pv-dots i { border-color: rgba(246, 243, 234, .32); }
+.board-steel .pv-dots i { border-color: rgba(40, 52, 64, .32); }
+.pv-dots svg { display: block; width: 130%; margin: -15%; height: auto; }
+.pv-board .board-tray { height: 6px; }
+.pv-board .board-tray i { bottom: 3px; height: 3px; }
+.pv-board .board-tray i:first-child { width: 16px; }
+.pv-board .board-tray i:last-child { left: 20%; width: 10px; }
+
+.pv-top { position: relative; height: 70px; margin: 0 6%; }
+.pv-top .pv-empty { color: var(--ink-soft); }
+.pv-decor { position: absolute; bottom: 0; width: calc(var(--dw) * .55px); transform: translateX(-50%); filter: drop-shadow(2px 2px 2px rgba(30, 70, 130, .25)); }
+.pv-decor svg { display: block; width: 100%; height: auto; }
+.pv-x {
+  position: absolute; top: -8px; right: -10px; width: 22px; height: 22px; padding: 0; border: 2px solid var(--wall); border-radius: 50%;
+  display: grid; place-items: center; background: var(--ink); color: var(--bg);
+}
+.pv-x svg { width: 11px; height: 11px; }
+.pv-x:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.pv-crown { position: relative; height: 10px; margin: 0 -4px; border-radius: 2px 2px 0 0; background: linear-gradient(var(--shelf-top) 0 3px, var(--shelf-front) 3px calc(100% - 2px), var(--shelf-edge) calc(100% - 2px)); }
+.pv-shelf {
+  display: flex; align-items: flex-end; gap: 2px; height: 58px; padding: 6px 8px 0; overflow: hidden;
+  background: var(--case-back); border: 6px solid var(--shelf-front); border-top: 0; box-shadow: inset 0 6px 8px -4px var(--shelf-shade);
+}
+.pv-shelf i { flex: none; width: var(--w); height: 86%; border-radius: 2px 2px 0 0; background: var(--cloth); box-shadow: inset -2px 0 0 rgba(0, 0, 0, .12), inset 0 0 0 1px rgba(0, 0, 0, .08); }
+.pv-shelf i:nth-child(3n) { height: 96%; }
+.pv-shelf i:nth-child(4n + 1) { height: 78%; }
+
+/* The minifigure being made, standing large on a bit of shelf */
+.pv-figure {
+  position: relative; display: grid; place-items: end center; height: 138px; padding-bottom: 8px;
+  background: linear-gradient(transparent calc(100% - 12px), var(--shelf-top) calc(100% - 12px) calc(100% - 9px), var(--shelf-front) calc(100% - 9px));
+}
+.pv-figure svg { width: 56px; height: auto; filter: drop-shadow(3px 4px 3px rgba(30, 70, 130, .25)); animation: rise .3s var(--ease-out); }
+.pv-figure-name {
+  position: absolute; top: 4px; left: 6px; max-width: 45%; padding: 2px 10px 3px; background: #fbf7ee; color: #1d2a55; transform: rotate(-2deg);
+  font-family: var(--f-hand); font-size: .9rem; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; box-shadow: 0 1px 2px rgba(0, 0, 0, .22);
+}
+
+/* The toggle between the board and the bookcase, under the preview */
+.dp-parts { flex: none; align-self: center; margin-top: 12px; }
+.dp-set { min-width: 0; margin: 0; padding: 0; border: 0; display: flex; flex-direction: column; gap: 10px; }
+.dp-set legend, .dp-label { padding: 0; margin-bottom: 10px; font-size: .78rem; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; color: var(--ink-soft); }
+.dp-label { margin: 0; }
+.dp-swatches { display: flex; gap: 12px; flex-wrap: wrap; }
+.dp-swatch, .dp-seg label { position: relative; cursor: pointer; }
+.dp-swatch input, .dp-seg input { position: absolute; opacity: 0; pointer-events: none; }
+.dp-swatch { display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: .78rem; font-weight: 700; }
+.dp-chip { width: 54px; height: 40px; border-radius: 4px; border: 3px solid var(--shelf-front); transition: box-shadow .2s; }
+.dp-swatch.on .dp-chip { box-shadow: 0 0 0 2px var(--card), 0 0 0 4px var(--ink); }
+.dp-swatch:has(input:focus-visible) .dp-chip, .dp-seg label:has(input:focus-visible) { outline: 2px solid var(--focus); outline-offset: 3px; }
+.dp-seg { align-self: flex-start; display: inline-flex; padding: 3px; border: 1px solid var(--line-2); border-radius: 999px; }
+.dp-seg label { padding: 6px 14px; border-radius: 999px; font-size: .88rem; font-weight: 700; color: var(--ink-soft); }
+.dp-seg label.on { background: var(--ink); color: var(--bg); }
+.dp-count { color: var(--ink-faint); font-weight: 700; font-variant-numeric: tabular-nums; }
+.dp-title .input { width: 100%; }
+.dp-things-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(78px, 1fr)); gap: 8px; }
+.dp-thing {
+  height: 94px; padding: 8px 6px; border: 1px solid var(--line-2); border-radius: 6px; background: var(--card-2); color: var(--ink);
+  display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 6px; font-size: .74rem; font-weight: 700;
+  transition: border-color .2s, transform .3s var(--ease-out);
+}
+.dp-thing svg { width: auto; height: 46px; max-width: 64px; }
+.dp-thing:hover:not(:disabled) { border-color: var(--ink-faint); transform: translateY(-2px); }
+.dp-thing:disabled { opacity: .45; }
+.dp-things .hint { margin: 4px 0 0; }
+
+/* The magnets: a row to pick one from, then the one picked, large, with what's written on it and ideas for more */
+.dp-mag-row { display: flex; gap: 6px; margin: 0 -4px; padding: 4px 4px 8px; overflow-x: auto; scrollbar-width: thin; }
+.dp-mag {
+  flex: none; width: 58px; height: 58px; padding: 3px; border: 1px solid transparent; border-radius: 10px; background: none;
+  transition: background-color .2s, border-color .2s, transform .3s var(--ease-out);
+}
+.dp-mag svg { display: block; width: 100%; height: auto; filter: drop-shadow(0 1px 0 rgba(60, 50, 40, .25)) drop-shadow(1px 3px 3px rgba(0, 0, 0, .22)); }
+.dp-mag:hover:not(:disabled) { transform: translateY(-2px); }
+.dp-mag[aria-selected="true"] { border-color: var(--ink); background: var(--card-2); }
+.dp-mag:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+.dp-mag-edit {
+  display: grid; grid-template-columns: 96px 1fr; gap: 12px 14px; padding: 14px; border: 1px solid var(--line); border-radius: 14px; background: var(--card-2);
+}
+.dp-mag-big { align-self: start; padding-top: 4px; }
+.dp-mag-big svg { display: block; width: 100%; height: auto; transform: rotate(-3deg); filter: drop-shadow(0 1.5px 0 rgba(60, 50, 40, .3)) drop-shadow(2px 6px 6px rgba(0, 0, 0, .28)); }
+.dp-mag-fields { min-width: 0; display: flex; flex-direction: column; gap: 10px; }
+.dp-mag-field { display: flex; flex-direction: column; gap: 5px; }
+.dp-mag-field .input { min-height: 40px; padding: 8px 12px; font-size: .95rem; }
+.dp-mag-field input.input { text-transform: uppercase; letter-spacing: .05em; font-weight: 700; }
+.dp-mag-field input.input::placeholder { text-transform: uppercase; font-weight: 600; }
+.dp-mag-earned { margin: 0; display: flex; flex-direction: column; gap: 2px; font-size: .92rem; }
+.dp-mag-earned span { font-size: .78rem; color: var(--ink-faint); }
+/* Places to write on it: the person's own first, as chips */
+.dp-mag-ideas { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px; }
+.dp-idea {
+  padding: 5px 11px; border: 1px solid var(--line-2); border-radius: 999px; background: var(--card); color: var(--ink);
+  font-size: .82rem; font-weight: 650; transition: border-color .15s, background-color .15s;
+}
+.dp-idea:hover { border-color: var(--ink-faint); }
+.dp-idea[aria-pressed="true"] { border-color: transparent; background: var(--sun); color: #14202b; }
+.dp-idea:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.dp-mag-actions { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 8px; }
+.dp-magnets .hint { margin: 0; }
+@media (max-width: 380px) { .dp-mag-edit { grid-template-columns: 76px 1fr; } }
+
+/* ---------- Making a minifigure ---------- */
+.fm { display: flex; flex-direction: column; gap: 12px; padding: 14px; border: 1px solid var(--line-2); border-radius: 10px; background: var(--card-2); }
+.fm .hint { margin: 0; }
+.fm-start { display: flex; align-items: center; gap: 12px; }
+.fm-thumb { flex: none; width: 34px; height: auto; filter: drop-shadow(2px 2px 2px rgba(30, 70, 130, .22)); }
+.fm-h { margin: 0; font-weight: 800; }
+.fm-sub { margin: 2px 0 0; font-size: .84rem; color: var(--ink-soft); line-height: 1.35; }
+.fm-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.fm-error { margin: 0; padding: 8px 10px; border-radius: 6px; background: var(--red-soft); color: var(--red); font-size: .86rem; font-weight: 600; }
+
+/* Waiting on the photo: the photo itself, dimmed, while it's read */
+.fm-reading { align-items: center; text-align: center; }
+.fm-photo { width: 96px; height: 96px; object-fit: cover; border-radius: 8px; opacity: .7; animation: fm-breathe 1.6s ease-in-out infinite; }
+.fm-reading p { margin: 0; display: flex; align-items: center; gap: 8px; font-weight: 700; }
+.fm-spin { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--line-2); border-top-color: var(--ink); animation: fm-turn .8s linear infinite; }
+@keyframes fm-turn { to { transform: rotate(1turn); } }
+@keyframes fm-breathe { 50% { opacity: .45; } }
+@media (prefers-reduced-motion: reduce) { .fm-photo, .fm-spin { animation: none; } }
+
+/* The editor: tabs for each part of the look (the figure itself stands in the preview at the top) */
+.fm-tabs { display: flex; gap: 2px; padding: 3px; border: 1px solid var(--line-2); border-radius: 999px; background: var(--card); }
+.fm-tabs button {
+  flex: 1; min-height: 32px; padding: 0 6px; border: 0; border-radius: 999px; background: none; color: var(--ink-soft);
+  font: inherit; font-size: .8rem; font-weight: 750; transition: background-color .2s, color .2s;
+}
+.fm-tabs button:hover:not([aria-selected="true"]) { color: var(--ink); background: color-mix(in oklab, var(--ink) 6%, transparent); }
+.fm-tabs button[aria-selected="true"] { background: var(--ink); color: var(--bg); }
+.fm-tabs button:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+/* Premium looks: gold buttons, deeper gold once chosen; and a gold note while one is being tried on without a plan */
+.fm-chip.premium {
+  border-color: #d9a520; color: #5a3d00;
+  background: linear-gradient(180deg, #fff1b8, #f6cf55 55%, #e8b22c); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .6), 0 1px 2px rgba(150, 100, 0, .25);
+}
+.fm-chip.premium:hover { border-color: #b8860b; color: #3d2a00; background: linear-gradient(180deg, #fff4c4, #f8d466 55%, #ebb633); }
+.fm-chip.premium[aria-pressed="true"] {
+  border-color: #8a6410; color: #fffaf0;
+  background: linear-gradient(180deg, #e0a82e, #b8860b 60%, #966c08); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .3), 0 2px 6px -2px rgba(120, 80, 0, .55);
+}
+.fm-plus {
+  display: inline-block; padding: 2px 6px 1px; border-radius: 3px; color: #3d2a00; background: linear-gradient(180deg, #fbe08a, #e8b22c);
+  font-size: .6rem; font-weight: 850; letter-spacing: .08em; text-transform: uppercase; line-height: 1.2;
+}
+.fm-locked { margin: 0; padding: 10px 12px; border: 1px solid #e8c25a; border-radius: 8px; background: color-mix(in oklab, #f6cf55 18%, var(--card)); font-size: .84rem; line-height: 1.4; }
+.fm-locked .fm-plus { margin-right: 6px; vertical-align: 1px; }
+
+/* Kept figures among the furniture: each one can be put on the bookcase again, or deleted */
+.dp-sublabel { font-size: .74rem; font-weight: 750; color: var(--ink-faint); }
+.dp-kept { position: relative; }
+.dp-kept .dp-thing { width: 100%; }
+.dp-kept .dp-thing span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dp-kept-x { top: -6px; right: -6px; border-color: var(--card); }
+.fm-tabpanel { display: flex; flex-direction: column; gap: 12px; min-height: 132px; animation: fm-tab-in .2s ease; }
+@keyframes fm-tab-in { from { opacity: 0; } }
+.fm-row { display: flex; flex-direction: column; gap: 7px; min-width: 0; }
+.fm-label { font-size: .72rem; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; color: var(--ink-soft); }
+.fm-row .input { width: 100%; }
+.fm-chips, .fm-tones { display: flex; flex-wrap: wrap; gap: 6px; }
+.fm-chip {
+  min-height: 32px; padding: 0 12px; border: 1px solid var(--line-2); border-radius: 999px; background: var(--card); color: var(--ink-soft);
+  font: inherit; font-size: .8rem; font-weight: 700; transition: background-color .2s, color .2s, border-color .2s;
+}
+.fm-chip:hover { border-color: var(--ink-faint); color: var(--ink); }
+.fm-chip[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--bg); }
+.fm-tone { width: 30px; height: 30px; padding: 0; border: 2px solid var(--card); border-radius: 50%; box-shadow: 0 0 0 1px var(--line-2); cursor: pointer; }
+.fm-tone[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--ink); }
+/* Any other tone: the colour picker behind a rainbow swatch */
+.fm-tone-any { position: relative; overflow: hidden; background: conic-gradient(#fbe0cc, #c98e66, #5f3a26, #a86f4c, #fbe0cc); }
+.fm-tone-any input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+/* A colour chip: the colour itself, its name, and a caret that turns while its swatches are open */
+.fm-colour {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 32px; padding: 0 10px 0 4px; border: 1px solid var(--line-2); border-radius: 999px;
+  background: var(--card); color: var(--ink); font: inherit; font-size: .8rem; font-weight: 700; transition: border-color .2s, box-shadow .2s;
+}
+.fm-colour:hover { border-color: var(--ink-faint); }
+.fm-colour[aria-expanded="true"] { border-color: var(--ink); box-shadow: 0 0 0 1px var(--ink); }
+.fm-colour-dot { width: 24px; height: 24px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .15); }
+.fm-colour-caret { width: 9px; height: 6px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; opacity: .55; transition: transform .2s var(--ease-out); }
+.fm-colour[aria-expanded="true"] .fm-colour-caret { transform: rotate(180deg); }
+
+/* The swatches under a colour chip */
+.fm-palette {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(30px, 1fr)); gap: 8px; padding: 10px; border: 1px solid var(--line-2); border-radius: 10px;
+  background: var(--card); box-shadow: 0 8px 18px -14px rgba(30, 70, 130, .45); animation: fm-palette-in .2s var(--ease-out);
+}
+@keyframes fm-palette-in { from { opacity: 0; transform: translateY(-4px); } }
+.fm-swatch {
+  position: relative; width: 30px; height: 30px; justify-self: center; padding: 0; border: 2px solid var(--card); border-radius: 50%;
+  box-shadow: 0 0 0 1px var(--line-2); cursor: pointer; transition: transform .15s var(--ease-out);
+}
+.fm-swatch:hover { transform: scale(1.08); }
+.fm-swatch[aria-pressed="true"], .fm-swatch-any.on { box-shadow: 0 0 0 2px var(--ink); }
+/* Any other colour: a rainbow swatch with the full picker behind it (showing the colour once one is chosen) */
+.fm-swatch-any { display: grid; place-items: center; overflow: hidden; background: conic-gradient(#f44, #fd4, #4d6, #4bf, #84f, #f4c, #f44); }
+.fm-swatch-any span { width: 18px; height: 18px; border-radius: 50%; display: grid; place-items: center; background: var(--card); color: var(--ink); font-size: .9rem; font-weight: 800; line-height: 1; }
+.fm-swatch-any input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+.fm-tone:focus-visible, .fm-chip:focus-visible, .fm-colour:focus-visible, .fm-swatch:focus-visible, .fm-swatch-any:has(input:focus-visible), .fm-tone-any:has(input:focus-visible) { outline: 2px solid var(--focus); outline-offset: 2px; }
+.save-state .link-btn { margin-left: 8px; font-size: inherit; }
+
+
+@media (max-width: 720px) {
+  /* The drawer becomes a sheet over the room. */
+  .room { padding-top: calc(58px + var(--safe-top) + 22px); }
+  /* Fills the screen under the top bar (the tab bar steps aside while it is open); its options scroll inside it. */
+  .design-panel {
+    top: calc(58px + var(--safe-top) + 10px); bottom: calc(10px + var(--safe-bottom)); left: 8px; right: 8px; width: auto;
+    padding: 14px 14px 0; animation-name: sheet-in;
+  }
+  .design-panel .dp-body { margin: 0 -14px; padding: 0 14px 18px; }
+  .design-shade { display: block; position: fixed; inset: 0; z-index: 13; background: rgba(10, 16, 22, .32); animation: shade-in .3s ease both; }
+  @keyframes shade-in { from { opacity: 0; } }
+  @keyframes sheet-in { from { opacity: 0; transform: translateY(16px) scale(.98); } }
+  .board { border-width: 8px; }
+  /* On a phone the holders are smaller, so the whole world still fits the width. */
+  .holders-grid { grid-template-columns: repeat(auto-fill, minmax(27px, 1fr)); gap: 4px; }
+  .case-top { height: 96px; }
+  .decor { width: calc(var(--dw) * .82px); }
+  .case-body { border-inline-width: 10px; }
+  .bookcase { --row: 290px; --plank: 14px; padding-inline: 6px; }
+  .spine, .spine-new { width: max(42px, calc(var(--w) * .9)); }
+  .view-seg button { min-height: 34px; padding: 0 13px 0 10px; font-size: .8rem; }
+  .head-row { gap: 6px; }
+  .head-btn { width: 44px; min-height: 44px; }
+  .carousel { --cw: min(56vw, 240px); }
+  .cs-slide { gap: 14px; }
+}
+
+/* ---------- Writing in the open book ---------- */
+/* The toolbar under the book: turning pages, then the book's tools */
+.peek-bar {
+  position: fixed; left: 50%; top: calc(50% - var(--lift, 0px) + var(--fh) / 2 + 16px); transform: translateX(-50%); z-index: 2;
+  display: flex; align-items: center; gap: 4px; padding: 6px; border-radius: 999px; white-space: nowrap;
+  background: color-mix(in oklab, var(--card) 74%, transparent); border: 1px solid color-mix(in oklab, var(--line-2) 70%, transparent);
+  -webkit-backdrop-filter: blur(18px) saturate(1.4); backdrop-filter: blur(18px) saturate(1.4); box-shadow: var(--lift-lg); color: var(--ink);
+  animation: spread-in .35s .1s ease both;
+}
+.pb-turn { display: flex; align-items: center; gap: 2px; }
+.pb-round { width: 38px; height: 38px; padding: 0; border: 0; border-radius: 50%; display: grid; place-items: center; background: none; color: var(--ink); }
+.pb-round svg, .pb-btn svg { width: 18px; height: 18px; flex: none; }
+.pb-round:hover:not(:disabled), .pb-btn:hover:not(:disabled) { background: color-mix(in oklab, var(--ink) 8%, transparent); }
+.pb-round:disabled, .pb-btn:disabled { opacity: .35; }
+.pb-folio { min-width: 74px; text-align: center; font-family: var(--heading); font-style: var(--heading-style); font-size: 1.02rem; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+.pb-sep { width: 1px; height: 24px; margin: 0 6px; background: var(--line-2); }
+.pb-btn { display: inline-flex; align-items: center; gap: 7px; min-height: 38px; padding: 0 14px; border: 0; border-radius: 999px; background: none; color: var(--ink); font: inherit; font-size: .88rem; font-weight: 700; }
+.pb-btn[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+.pb-btn.sun { background: var(--sun); color: #14202b; }
+.pb-btn.sun:hover:not(:disabled) { background: color-mix(in oklab, var(--sun) 88%, #000); }
+.peek-bar .menu .pb-btn { padding: 0 11px; }
+/* The tools come out of the bar when Edit is pressed, and Done puts them away again. */
+.pb-tools { display: flex; align-items: center; gap: 4px; animation: tools-in .35s var(--ease-out) both; }
+@keyframes tools-in { from { opacity: 0; transform: translateX(-10px); } }
+.pb-btn.done { background: var(--ink); color: var(--bg); }
+.pb-btn.done:hover { background: color-mix(in oklab, var(--ink) 86%, var(--bg)); }
+.peek-bar .save-state { min-width: 64px; padding: 0 10px 0 4px; font-size: .8rem; }
+.pb-menu { top: auto; bottom: calc(100% + 12px); right: 0; min-width: 290px; }
+.pb-menu button.armed, .pb-menu button.armed svg { color: #c2304d; }
+
+/* Text written on the page: click it and it becomes a field, in the same type, where it stands */
+.ed-text { cursor: text; border-radius: 3px; transition: background-color .15s, box-shadow .15s; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+.ed-text:hover { background: color-mix(in oklab, var(--red) 9%, transparent); box-shadow: 0 0 0 4px color-mix(in oklab, var(--red) 9%, transparent); }
+.ed-text:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; }
+.ed-ph { font-style: italic; color: var(--ink-faint); opacity: .85; }
+.story.ed.empty::first-letter { all: unset; }
+.ed-field {
+  display: block; width: 100%; margin: 0; padding: 2px 4px; border: 0; border-radius: 3px; resize: none; overflow: hidden;
+  font: inherit; color: inherit; letter-spacing: inherit; text-transform: inherit; line-height: inherit; text-align: inherit;
+  background: color-mix(in oklab, var(--paper) 55%, #fff); outline: 2px solid var(--red); outline-offset: 2px;
+}
+.ed-field::placeholder { color: var(--ink-faint); font-style: italic; }
+span.ed.editing, strong.ed.editing { display: inline-block; min-width: 10ch; }
+.fulldate .ed.editing .ed-field { width: auto; font-size: .9rem; }
+.story.editing .ed-field { min-height: 7em; }
+.ed-select {
+  appearance: none; -webkit-appearance: none; padding: 0 2px; border: 0; border-radius: 3px; background: none; color: inherit; font: inherit; cursor: pointer;
+  text-decoration: underline dotted color-mix(in oklab, currentColor 45%, transparent); text-underline-offset: 3px;
+}
+.ed-select:hover { background: color-mix(in oklab, var(--red) 9%, transparent); }
+.ed-select option { color: #14202b; }
+.mount figcaption.ed .ed-text { padding: 0 4px; }
+.mount figcaption .ed-field { background: transparent; text-align: center; }
+
+/* Photos on the left page: the one shown, the others under it, and a + to add more */
+.leaf-add {
+  display: grid; place-items: center; width: 64px; height: 64px; padding: 0; border: 2px dashed var(--rule); border-radius: 4px;
+  background: none; color: var(--ink-soft); transition: border-color .2s, color .2s, background-color .2s;
+}
+.leaf-add svg { width: 22px; height: 22px; }
+.leaf-add:hover:not(:disabled) { border-color: var(--red); color: var(--red); background: var(--red-soft); }
+.leaf-add.big { width: 100%; height: auto; aspect-ratio: 4 / 3; gap: 10px; align-content: center; font-family: var(--f-hand); font-size: 1.5rem; }
+.leaf-add.big svg { width: 34px; height: 34px; }
+.leaf-add.busy { font-family: var(--f-hand); font-size: 1.3rem; color: var(--ink-soft); }
+.leaf-thumbs { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 10px; }
+.leaf-thumbs li { position: relative; }
+.leaf-thumb { display: block; width: 64px; height: 64px; padding: 4px; border: 0; background: var(--polaroid); box-shadow: 0 1px 3px rgba(0, 0, 0, .25); }
+.leaf-thumb img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.leaf-thumb[aria-current="true"] { outline: 2px solid var(--red); outline-offset: 2px; }
+.leaf-thumb.busy { background: linear-gradient(100deg, var(--paper-2) 30%, var(--paper) 50%, var(--paper-2) 70%) 0 0 / 300% 100%; animation: shimmer 1.2s linear infinite; }
+@keyframes shimmer { to { background-position: -150% 0; } }
+.leaf-thumb-x {
+  position: absolute; top: -8px; right: -8px; width: 24px; height: 24px; padding: 0; border: 2px solid var(--paper); border-radius: 50%;
+  display: grid; place-items: center; background: var(--ink); color: var(--paper); opacity: 0; transition: opacity .15s;
+}
+.leaf-thumb-x svg { width: 12px; height: 12px; }
+.leaf-thumbs li:hover .leaf-thumb-x, .leaf-thumbs li:focus-within .leaf-thumb-x { opacity: 1; }
+@media (hover: none) { .leaf-thumb-x { opacity: 1; } }
+
+/* The contents page */
+.contents-book .right { gap: 16px; }
+.contents-hello { margin: 0; padding: 10px 14px; border-radius: 3px; background: var(--red-soft); font-size: .92rem; }
+.contents { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 18px; }
+.contents ol { list-style: none; margin: 6px 0 0; padding: 0; }
+.contents-ch { margin: 0; font-family: var(--heading); font-style: var(--heading-style); font-size: 1.15rem; color: var(--red); }
+.contents-ch span { margin-left: 6px; font-family: var(--f-ui); font-style: normal; font-size: .78rem; font-weight: 750; letter-spacing: .08em; color: var(--ink-faint); }
+.contents button { display: flex; align-items: baseline; gap: 10px; width: 100%; padding: 6px 0; border: 0; background: none; color: var(--ink); text-align: left; font: inherit; }
+.contents-t { min-width: 0; font-family: var(--f-body); font-size: 1.04rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.contents-d { flex: none; font-size: .76rem; font-weight: 650; color: var(--ink-faint); }
+.contents-dots { flex: 1; min-width: 20px; border-bottom: 1px dotted var(--rule); transform: translateY(-4px); }
+.contents-n { flex: none; font-family: var(--heading); font-style: var(--heading-style); color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+.contents button:hover .contents-t, .contents button:focus-visible .contents-t { color: var(--red); text-decoration: underline; text-underline-offset: 3px; }
+.peek-since { margin: 0; font-size: .84rem; color: var(--ink-faint); }
+.peek-endpaper .faces { justify-content: center; margin-top: 10px; }
+.peek-empty-row { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* Designing the open book, laid out as the library's board and bookcase are: a sheet with the book on top, the
+   Cover / Stickers / Pages switch under it, and only that part's options scrolling below.
+   (No transform stays on the sheet: the sticker being dragged is placed by the pointer, fixed to the screen.) */
+.peek-design {
+  /* The stage's height, and the book's width on it: the closed book and each page of the open one are this size. */
+  --pv-h: clamp(240px, 42vh, 420px);
+  --pv-bw: min(250px, calc((var(--pv-h) - 76px) / 1.44), calc((100vw - 96px) / 2));
+  --pv-glow: rgba(255, 255, 255, .85);
+  position: fixed; inset: 64px 12px clamp(12px, 2.4vw, 24px); max-width: 760px; margin: 0 auto; display: flex; flex-direction: column; overflow: hidden;
+  padding: 18px 20px 0; border-radius: 16px; border: 1px solid var(--line); background: var(--card); color: var(--ink); box-shadow: var(--lift-lg);
+  animation: pd-in .4s var(--ease-out);
+}
+:root[data-theme="dark"] .peek-design { --pv-glow: rgba(255, 255, 255, .07); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .peek-design { --pv-glow: rgba(255, 255, 255, .07); } }
+@keyframes pd-in { from { opacity: 0; transform: translateY(14px) scale(.985); } }
+.designer.stacked { flex: 1; min-height: 0; display: flex; flex-direction: column; align-items: stretch; gap: 0; }
+.pd-head { flex: none; display: flex; align-items: center; gap: 4px 14px; flex-wrap: wrap; }
+.pd-head .sec-h { flex: 1; font-size: 1.2rem; }
+.pd-head .save-state { font-size: .78rem; }
+/* The preview: a soft-lit table with the book in the very middle of it, a fixed height so nothing below jumps as the
+   parts change, and what to do with the book in small type along its foot. */
+.peek-design .designer.stacked .designer-stage {
+  position: relative; top: 0; flex: none; height: var(--pv-h); min-height: 0; margin-top: 14px; padding: 34px 12px; gap: 0;
+  display: flex; align-items: center; justify-content: center; overflow: hidden; border-radius: 14px; border: 1px solid var(--line);
+  background: radial-gradient(56% 64% at 50% 46%, var(--pv-glow), transparent 74%), linear-gradient(transparent 50%, rgba(30, 70, 130, .07)), var(--card-2);
+  background-size: auto;
+}
+.designer.stacked .stage-hint { position: absolute; left: 12px; right: 12px; bottom: 10px; text-align: center; font-size: .76rem; pointer-events: none; }
+.designer.stacked .b3d.tappable { cursor: pointer; }
+.designer.stacked .dseg { flex: none; align-self: center; margin-top: 12px; }
+/* Only the options scroll */
+.designer.stacked .designer-panel {
+  flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; margin: 0 -20px; padding: 18px 20px 24px; gap: 18px;
+  scrollbar-width: thin; scrollbar-color: color-mix(in oklab, var(--ink) 16%, transparent) transparent;
+}
+.designer.stacked .dgroup-list { gap: 20px; }
+/* The book opened on the stage: two pages, each the size of the closed book, drawn by the reader itself and scaled down */
+.pd-spread {
+  /* How far the boards stand out past the pages: at the sides, and at the head and foot */
+  position: relative; flex: none; width: min(100%, calc(var(--pv-bw) * 2)); aspect-ratio: 200 / 132; perspective: calc(var(--pv-bw) * 5);
+  border-radius: 4px; cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+.pd-spread:focus-visible { outline: 2px solid var(--focus); outline-offset: calc(var(--ov) + 6px); }
+.pd-spread-pages { position: absolute; inset: 0; }
+.pd-spread-in { position: absolute; left: 0; top: 0; width: calc(var(--fw) * 2); height: var(--fh); transform-origin: 0 0; }
+:is(.pd-spread, .pspread) .peek-book.book { position: relative; left: auto; top: auto; width: 100%; height: 100%; max-width: none; margin: 0; transform: none; animation: none; }
+:is(.pd-spread, .pspread) .peek-book > * { animation: none; }
+/* The preview only shows the page; the reader on the phone lets a long page scroll, as on a computer */
+.pd-spread .peek-book > * { overflow: hidden; }
+/* It's laid out at the reader's size, so it keeps two pages even on a phone (where the reader shows one at a time).
+   The boards under it give the shadow, and .pd-sheen the fold, so the reader's own are left off. */
+:is(.pd-spread, .pspread) .book { grid-template-columns: 1fr 1fr; border-radius: 5px; box-shadow: none; }
+:is(.pd-spread, .pspread) .book.fold::after { display: none; }
+:is(.pd-spread, .pspread) .book .left, :is(.pd-spread, .pspread) .book .right { padding: 34px 40px; }
+
+:is(.pd-spread, .pspread) { --ov: calc(var(--pv-bw) * .045); --ovy: calc(var(--pv-bw) * .05); }
+/* The open hardcover: cloth boards a little larger than the pages, a darker spine between them, a shadow on the table */
+.pd-case {
+  position: absolute; inset: calc(var(--ovy) * -1) calc(var(--ov) * -1); border-radius: calc(var(--pv-bw) * .025);
+  background-color: var(--cloth);
+  background-image:
+    linear-gradient(90deg, rgba(0, 0, 0, .22), transparent 5%, transparent 42%, rgba(0, 0, 0, .3) 48.6%, rgba(255, 255, 255, .1) 50%, rgba(0, 0, 0, .3) 51.4%, transparent 58%, transparent 95%, rgba(0, 0, 0, .22)),
+    var(--tex, none);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .18), 0 1px 2px rgba(0, 0, 0, .25), 0 calc(var(--pv-bw) * .1) calc(var(--pv-bw) * .16) calc(var(--pv-bw) * -.07) rgba(10, 18, 26, .55);
+}
+/* The headband peeking out at the top and bottom of the spine */
+.pd-case::before {
+  content: ""; position: absolute; left: 50%; top: calc(var(--ovy) * .35); bottom: calc(var(--ovy) * .35); width: calc(var(--ov) * 1.6); transform: translateX(-50%);
+  border-radius: 2px; background: linear-gradient(var(--cloth-ink, rgba(0, 0, 0, .5)) 0 10%, transparent 10% 90%, var(--cloth-ink, rgba(0, 0, 0, .5)) 90%); opacity: .7;
+}
+/* Light on the pages, like the photo of an open book: each page curves down into the gutter, catching a thin line of
+   light at the very fold, and lifts a little at its outer edge; the block of pages shows as fine lines at the sides. */
+.pd-sheen {
+  position: absolute; inset: 0; pointer-events: none; border-radius: 3px;
+  background:
+    linear-gradient(90deg,
+      rgba(0, 0, 0, .1) 0, rgba(0, 0, 0, .02) 2.5%, transparent 6%,
+      rgba(255, 255, 255, .1) 22%, transparent 34%, rgba(0, 0, 0, .06) 41%, rgba(0, 0, 0, .17) 46.5%, rgba(0, 0, 0, .34) 49.6%,
+      rgba(255, 255, 255, .22) 50.1%, rgba(0, 0, 0, .2) 50.8%, rgba(0, 0, 0, .1) 54%, transparent 62%,
+      rgba(255, 255, 255, .1) 76%, transparent 92%, rgba(0, 0, 0, .02) 97.5%, rgba(0, 0, 0, .1) 100%),
+    linear-gradient(rgba(0, 0, 0, .04), transparent 6%, transparent 94%, rgba(0, 0, 0, .05));
+  box-shadow:
+    calc(var(--edge, 1px) * -1) var(--edge, 1px) 0 var(--paper-edge, #e0d8c3), calc(var(--edge, 1px) * -2) var(--edge, 1px) 0 var(--paper, #fff), calc(var(--edge, 1px) * -3) calc(var(--edge, 1px) * 2) 0 var(--paper-edge, #e0d8c3), calc(var(--edge, 1px) * -4) calc(var(--edge, 1px) * 2) 0 var(--paper-2, #eee),
+    var(--edge, 1px) var(--edge, 1px) 0 var(--paper-edge, #e0d8c3), calc(var(--edge, 1px) * 2) var(--edge, 1px) 0 var(--paper, #fff), calc(var(--edge, 1px) * 3) calc(var(--edge, 1px) * 2) 0 var(--paper-edge, #e0d8c3), calc(var(--edge, 1px) * 4) calc(var(--edge, 1px) * 2) 0 var(--paper-2, #eee);
+}
+
+/* The cover, the size of a board, hinged at the spine and turning over to the left as the book opens; once over, its
+   inside (the turned-in cloth round the endpaper) gives way to the left board and page under it. */
+.pd-lid {
+  position: absolute; z-index: 2; top: calc(var(--ovy) * -1); left: 50%; width: calc(50% + var(--ov)); height: calc(100% + var(--ovy) * 2);
+  transform-origin: 0 50%; transform-style: preserve-3d; pointer-events: none;
+}
+.pd-lid-front, .pd-lid-inside { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+.pd-lid-front .cface { width: 100%; height: 100%; aspect-ratio: auto; box-shadow: 0 1px 2px rgba(0, 0, 0, .22), 0 18px 28px -16px rgba(0, 0, 0, .55); }
+.pd-lid-inside {
+  transform: rotateY(180deg); border-radius: calc(var(--pv-bw) * .025); background: var(--paper-2, #eee7d4);
+  box-shadow: inset 0 0 0 var(--ov) var(--cloth), inset 0 0 0 calc(var(--ov) + 2px) rgba(0, 0, 0, .1), 0 1px 2px rgba(0, 0, 0, .2);
+}
+
+@media (max-width: 759px) {
+  .peek-bar { top: auto; bottom: calc(12px + var(--safe-bottom)); left: 8px; right: 8px; transform: none; justify-content: space-between; gap: 0; padding: 4px; }
+  .pb-folio { min-width: 52px; font-size: .9rem; }
+  .pb-sep, .peek-bar .save-state { display: none; }
+  .pb-tools { flex: 1; justify-content: space-between; gap: 0; }
+  .pb-btn { padding: 0 10px; }
+  .pb-btn span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .peek-design { inset: 56px 6px 6px; padding: 14px 14px 0; --pv-h: clamp(220px, 36vh, 320px); }
+  .designer.stacked .designer-panel { margin: 0 -14px; padding: 16px 14px 20px; }
+  .designer.stacked .dseg button { padding: 0 12px 0 10px; }
+}

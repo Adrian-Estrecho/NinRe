@@ -7,7 +7,7 @@ import type { Store } from "../db.ts";
 import { DEFAULT_DESIGN, parseDesign } from "../design.ts";
 import { IMAGE_TYPES, bookDir, looksLikeImage, removeBookFiles, removeFiles } from "../files.ts";
 import { HttpError, type User } from "../types.ts";
-import { MAX_NOTES_PER_PAGE, isObj, parseCover, parseNote, parsePageInput } from "../validate.ts";
+import { MAX_NOTES_PER_PAGE, isObj, parseBookKind, parseCover, parseNote, parsePageInput } from "../validate.ts";
 
 export const MAX_UPLOAD_BYTES = 15 * 1024 * 1024;
 const INVITE_DAYS = 14;
@@ -44,7 +44,7 @@ export function bookRoutes(store: Store, uploadsDir: string) {
     }
     const cover = parseCover(isObj(req.body) ? req.body : {});
     const design = isObj(req.body) && req.body.design != null ? { ...parseDesign(req.body.design), coverPhoto: null } : DEFAULT_DESIGN;
-    const id = store.books.create(me.id, cover, design);
+    const id = store.books.create(me.id, cover, design, parseBookKind(isObj(req.body) ? req.body.kind : null));
     res.status(201).json(store.books.get(id, me.id));
   });
 
@@ -55,6 +55,10 @@ export function bookRoutes(store: Store, uploadsDir: string) {
 
   r.put("/:bookId/cover", member, (req, res) => {
     res.json(store.books.saveCover(bookIdOf(res), parseCover(req.body)));
+  });
+
+  r.put("/:bookId/kind", member, (req, res) => {
+    res.json({ kind: store.books.saveKind(bookIdOf(res), parseBookKind(isObj(req.body) ? req.body.kind ?? "" : "")) });
   });
 
   r.put("/:bookId/design", member, (req, res) => {
@@ -72,11 +76,45 @@ export function bookRoutes(store: Store, uploadsDir: string) {
 
   r.get("/:bookId/people", member, (_req, res) => {
     const id = bookIdOf(res);
+    const isOwner = roleOf(res) === "owner";
     res.set("Cache-Control", "no-store").json({
       members: store.books.members(id),
-      invites: roleOf(res) === "owner" ? store.invites.list(id) : [],
+      invites: isOwner ? store.invites.list(id) : [],
+      asked: isOwner ? store.notifications.asked(id) : [],
       allowance: allowance(id),
     });
+  });
+
+  /**
+   * The owner adds a friend (someone they follow who follows them back). People who asked to be asked first get a
+   * request to accept; everyone else goes straight in and is told.
+   */
+  r.post("/:bookId/people", owner, (req, res) => {
+    const id = bookIdOf(res), me = userOf(res);
+    const target = typeof req.body?.userId === "string" ? req.body.userId : "";
+    const them = store.users.get(target);
+    if (!them) throw new HttpError(404, "That person isn't on NinRe any more.");
+    if (store.books.role(id, target)) throw new HttpError(409, `${them.name} is already in this book.`);
+    if (!store.social.areFriends(me.id, target)) {
+      throw new HttpError(403, `You can add friends who follow you back. Send ${them.name} an invite link instead.`);
+    }
+    const a = allowance(id);
+    const asked = store.notifications.asked(id).filter((p) => p.id !== target).length;
+    if (store.books.memberCount(id) + asked >= a.members) {
+      throw limitReached(`This book is full. ${a.planName} fits ${a.members} people in a book${asked ? `, counting ${asked} still deciding` : ""}. Upgrade to add more.`);
+    }
+    if (store.users.settings(target).addToBooks === "ask") {
+      store.notifications.ask(id, me.id, target);
+      return void res.json({ status: "asked" });
+    }
+    store.books.addMember(id, target);
+    store.notifications.add(target, "book_add", { actorId: me.id, bookId: id });
+    res.json({ status: "added" });
+  });
+
+  r.delete("/:bookId/asked/:userId", owner, (req, res) => {
+    if (!store.notifications.cancelAsk(bookIdOf(res), String(req.params.userId))) throw new HttpError(404, "That request was already answered.");
+    res.status(204).end();
   });
 
   r.delete("/:bookId/people/:userId", member, (req, res) => {
@@ -145,6 +183,7 @@ export function bookRoutes(store: Store, uploadsDir: string) {
   r.post("/:bookId/pages", member, async (req, res) => {
     const id = bookIdOf(res);
     const { page, removedFiles } = store.pages.create(id, userOf(res).id, parsePageInput(req.body));
+    store.notifications.pageAdded(id, userOf(res).id, page.id, page.title);
     await removeFiles(uploadsDir, id, removedFiles);
     res.status(201).json(page);
   });
@@ -172,7 +211,9 @@ export function bookRoutes(store: Store, uploadsDir: string) {
     if (!store.pages.get(id, pageId)) throw new HttpError(404, "That page isn't in the book any more.");
     if (store.notes.countOn(pageId) >= MAX_NOTES_PER_PAGE) throw new HttpError(400, `A page holds up to ${MAX_NOTES_PER_PAGE} notes.`);
     const n = parseNote(req.body);
-    res.status(201).json(store.notes.create(id, pageId, userOf(res).id, n.text, n.color));
+    const page = store.notes.create(id, pageId, userOf(res).id, n.text, n.color);
+    store.notifications.noteAdded(id, pageId, userOf(res).id, n.text);
+    res.status(201).json(page);
   });
 
   function ownNote(res: Response, pageId: string, noteId: string, allowOwner: boolean) {
@@ -228,6 +269,7 @@ export function inviteRoutes(store: Store, userOfReq: (req: Request) => User | u
         throw limitReached(`This book is full. ${plan.name} includes ${plan.members} people per book, so the owner needs to upgrade first.`);
       }
       store.books.addMember(inv.bookId, me.id);
+      store.notifications.joined(inv.bookId, me.id);
     }
     res.json({ bookId: inv.bookId });
   });

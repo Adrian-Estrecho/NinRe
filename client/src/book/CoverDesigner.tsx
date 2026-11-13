@@ -10,7 +10,14 @@ import { EmblemArt } from "./emblems";
 import { PagePreview } from "./PagePreview";
 import { StickerArt } from "./stickers";
 
-type Tab = "cover" | "stickers" | "pages";
+export type DesignTab = "cover" | "stickers" | "pages";
+type Tab = DesignTab;
+
+const TABS: { id: Tab; name: string; icon: string }[] = [
+  { id: "cover", name: "Cover", icon: "book" },
+  { id: "stickers", name: "Stickers", icon: "sparkle" },
+  { id: "pages", name: "Pages", icon: "album" },
+];
 
 interface Props {
   design: Design;
@@ -29,6 +36,20 @@ interface Props {
   idPrefix?: string;
   /** Things laid on the stage around the book, e.g. tape holding a paper mat. */
   stageDecor?: ReactNode;
+  /**
+   * The preview on top and the options under it, one kind at a time behind a Cover / Stickers / Pages switch (as the
+   * library's board and bookcase are designed), instead of the stage beside the panel.
+   */
+  stacked?: boolean;
+  /** Controls put at the top of one kind's options, e.g. the title with the cover. */
+  extras?: Partial<Record<Tab, ReactNode>>;
+  /**
+   * Shown on the stage for Pages instead of the plain page preview, e.g. the book opened at a page laid out the way its
+   * kind lays it; `close` goes back to the cover.
+   */
+  pagesStage?: (close: () => void) => ReactNode;
+  /** Offer the photo styles (polaroid, clip, corners); an album prints its photos flat, so it leaves them out. */
+  photoStyles?: boolean;
 }
 
 const NAME = Object.fromEntries(STICKER_KINDS.map((s) => [s.k, s.name])) as Record<StickerKind, string>;
@@ -37,7 +58,7 @@ const NAME = Object.fromEntries(STICKER_KINDS.map((s) => [s.k, s.name])) as Reco
  * The book designer: cloth, foil, type and emblem for the cover; stickers you drag onto it;
  * paper, photo style and ink for the pages. Everything previews live on a book you can turn.
  */
-export function CoverDesigner({ design, onChange, title, subtitle, photos = [], previewPage, footer, header, bookWidth = "min(330px, 62vw)", idPrefix = "dz", stageDecor }: Props) {
+export function CoverDesigner({ design, onChange, title, subtitle, photos = [], previewPage, footer, header, bookWidth = "min(330px, 62vw)", idPrefix = "dz", stageDecor, stacked, extras, pagesStage, photoStyles = true }: Props) {
   const [tab, setTab] = useState<Tab>("cover");
   const [selected, setSelected] = useState<number | null>(null);
   const [ghost, setGhost] = useState<{ k: StickerKind; x: number; y: number } | null>(null);
@@ -198,196 +219,221 @@ export function CoverDesigner({ design, onChange, title, subtitle, photos = [], 
   const swatch = (on: boolean) => (on ? "sw on" : "sw");
   const radio = (name: string) => `${idPrefix}-${name}`;
 
-  return (
-    <div className="designer">
-      <div className={`designer-stage stage-${tab}`}>
-        {stageDecor}
-        {tab === "pages" ? (
+  const presets = (
+    <div className="presets" role="group" aria-label="Start from a look">
+      {PRESETS.map((p) => (
+        <button key={p.name} type="button" className="preset" onClick={() => set({ ...p.design, stickers: live.current.stickers, coverPhoto: live.current.coverPhoto })}>
+          <span className="preset-dot" style={{ background: p.design.cloth }} />
+          {p.name}
+        </button>
+      ))}
+    </div>
+  );
+  const tabLabel = (t: Tab) => (t === "stickers" && design.stickers.length ? `Stickers · ${design.stickers.length}` : TABS.find((x) => x.id === t)!.name);
+  const tabProps = (t: Tab) => ({
+    role: "tab", id: `${idPrefix}-tab-${t}`, "aria-controls": `${idPrefix}-panel-${t}`, "aria-selected": tab === t, onClick: () => setTab(t),
+  }) as const;
+
+  const stage = (
+    <div className={`designer-stage stage-${tab}`}>
+      {stageDecor}
+      {tab === "pages" ? (
+        pagesStage?.(() => setTab("cover")) ?? (
           <div className="stage-pages">
             <PagePreview design={design} page={previewPage} />
           </div>
-        ) : (
-          <Book3D
-            design={design}
-            title={title || "Our Book of Travels"}
-            subtitle={subtitle}
-            photoUrl={photoUrl}
-            width={bookWidth}
-            pose={tab === "stickers" ? "front" : "angled"}
-            hideStickers={tab === "stickers"}
-            overlay={stickerLayer || undefined}
-            label={tab === "stickers" ? `The cover of ${title}, face on for placing stickers.` : undefined}
-          />
-        )}
-        <p className="stage-hint" aria-hidden="true">
-          {tab === "cover" ? "Drag the book to turn it" : tab === "stickers" ? (design.stickers.length ? "Drag stickers to move them" : "Drag a sticker onto the cover") : "A page, dressed in your paper and photo style"}
-        </p>
-      </div>
+        )
+      ) : (
+        <Book3D
+          design={design}
+          title={title || "Our Book of Travels"}
+          subtitle={subtitle}
+          photoUrl={photoUrl}
+          width={bookWidth}
+          pose={tab === "stickers" ? "front" : "angled"}
+          hideStickers={tab === "stickers"}
+          overlay={stickerLayer || undefined}
+          label={tab === "stickers" ? `The cover of ${title}, face on for placing stickers.` : undefined}
+          onTap={stacked && tab === "cover" && pagesStage ? () => setTab("pages") : undefined}
+        />
+      )}
+      <p className="stage-hint" aria-hidden="true">
+        {tab === "cover" ? (stacked && pagesStage ? "Drag to turn the book · tap to open it" : "Drag the book to turn it") : stacked && tab === "pages" && pagesStage ? "Tap the pages to close the book" : tab === "stickers" ? (design.stickers.length ? "Drag stickers to move them" : "Drag a sticker onto the cover") : "A page, dressed in your paper and photo style"}
+      </p>
+    </div>
+  );
 
-      <div className="designer-panel">
-        {header}
-        <div className="presets" role="group" aria-label="Start from a look">
-          {PRESETS.map((p) => (
-            <button key={p.name} type="button" className="preset" onClick={() => set({ ...p.design, stickers: live.current.stickers, coverPhoto: live.current.coverPhoto })}>
-              <span className="preset-dot" style={{ background: p.design.cloth }} />
-              {p.name}
-            </button>
-          ))}
-        </div>
+  const tabs = stacked ? (
+    <div className="dseg view-seg" role="tablist" aria-label="What to design">
+      {TABS.map((t) => (
+        <button key={t.id} type="button" {...tabProps(t.id)}>
+          <Icon name={t.icon} />{tabLabel(t.id)}
+        </button>
+      ))}
+    </div>
+  ) : (
+    <div className="dtabs" role="tablist" aria-label="What to design">
+      {TABS.map((t) => <button key={t.id} type="button" {...tabProps(t.id)}>{tabLabel(t.id)}</button>)}
+    </div>
+  );
 
-        <div className="dtabs" role="tablist" aria-label="What to design">
-          {(["cover", "stickers", "pages"] as Tab[]).map((t) => (
-            <button key={t} type="button" role="tab" id={`${idPrefix}-tab-${t}`} aria-controls={`${idPrefix}-panel-${t}`} aria-selected={tab === t} onClick={() => setTab(t)}>
-              {t === "cover" ? "Cover" : t === "stickers" ? `Stickers${design.stickers.length ? ` · ${design.stickers.length}` : ""}` : "Pages"}
-            </button>
-          ))}
-        </div>
-
-        {tab === "cover" && (
-          <div className="dgroup-list" role="tabpanel" id={`${idPrefix}-panel-cover`} aria-labelledby={`${idPrefix}-tab-cover`}>
-            <fieldset className="dgroup">
-              <legend>Cloth</legend>
-              <div className="swatches">
-                {CLOTHS.map((c) => (
-                  <label key={c.hex} className={swatch(design.cloth === c.hex)} title={c.name}>
-                    <input type="radio" name={radio("cloth")} checked={design.cloth === c.hex} onChange={() => set({ cloth: c.hex })} />
-                    <span className="cloth-chip" style={{ background: c.hex }} />
-                    <span className="sr-only">{c.name}</span>
-                  </label>
-                ))}
-                <label className={`${swatch(!CLOTHS.some((c) => c.hex === design.cloth))} custom`} title="Your own colour">
-                  <input type="color" value={design.cloth} onChange={(e) => set({ cloth: e.target.value })} aria-label="Your own cloth colour" />
-                  <span className="cloth-chip any" style={{ background: CLOTHS.some((c) => c.hex === design.cloth) ? undefined : design.cloth }} />
+  const panels = (
+    <>
+      {tab === "cover" && (
+        <div className="dgroup-list" role="tabpanel" id={`${idPrefix}-panel-cover`} aria-labelledby={`${idPrefix}-tab-cover`}>
+          {extras?.cover}
+          {stacked && (
+            <div className="dgroup">
+              <span className="dgroup-h">Start from a look</span>
+              {presets}
+            </div>
+          )}
+          <fieldset className="dgroup">
+            <legend>Cloth</legend>
+            <div className="swatches">
+              {CLOTHS.map((c) => (
+                <label key={c.hex} className={swatch(design.cloth === c.hex)} title={c.name}>
+                  <input type="radio" name={radio("cloth")} checked={design.cloth === c.hex} onChange={() => set({ cloth: c.hex })} />
+                  <span className="cloth-chip" style={{ background: c.hex }} />
+                  <span className="sr-only">{c.name}</span>
                 </label>
-              </div>
-            </fieldset>
+              ))}
+              <label className={`${swatch(!CLOTHS.some((c) => c.hex === design.cloth))} custom`} title="Your own colour">
+                <input type="color" value={design.cloth} onChange={(e) => set({ cloth: e.target.value })} aria-label="Your own cloth colour" />
+                <span className="cloth-chip any" style={{ background: CLOTHS.some((c) => c.hex === design.cloth) ? undefined : design.cloth }} />
+              </label>
+            </div>
+          </fieldset>
 
-            <fieldset className="dgroup">
-              <legend>Finish</legend>
-              <div className="chips-row">
-                {TEXTURES.map((t) => (
-                  <label key={t.id} className="pill">
-                    <input type="radio" name={radio("tex")} checked={design.texture === t.id} onChange={() => set({ texture: t.id })} />
-                    <span>{t.name}</span>
-                  </label>
-                ))}
-              </div>
-            </fieldset>
-
-            <fieldset className="dgroup">
-              <legend>Foil</legend>
-              <div className="swatches">
-                {FOILS.map((f) => (
-                  <label key={f.id} className={swatch(design.foil === f.id)} title={f.name}>
-                    <input type="radio" name={radio("foil")} checked={design.foil === f.id} onChange={() => set({ foil: f.id })} />
-                    <span className="foil-chip" style={{ background: `linear-gradient(135deg, ${f.lo}, ${f.hi} 40%, ${f.mid} 60%, ${f.lo})` }} />
-                    <span className="sr-only">{f.name}</span>
-                  </label>
-                ))}
-              </div>
-            </fieldset>
-
-            <fieldset className="dgroup">
-              <legend>Title type</legend>
-              <div className="chips-row">
-                {TITLE_FONTS.map((f) => (
-                  <label key={f.id} className="pill font">
-                    <input type="radio" name={radio("font")} checked={design.titleFont === f.id} onChange={() => set({ titleFont: f.id })} />
-                    <span style={{ fontFamily: f.family, fontStyle: f.id === "classic" ? "italic" : undefined, fontWeight: f.id === "modern" ? 800 : undefined }}>{f.name}</span>
-                  </label>
-                ))}
-              </div>
-            </fieldset>
-
-            <fieldset className="dgroup">
-              <legend>Layout</legend>
-              <div className="chips-row">
-                {LAYOUTS.map((l) => (
-                  <label key={l.id} className="pill layout">
-                    <input type="radio" name={radio("layout")} checked={design.layout === l.id} onChange={() => set({ layout: l.id })} />
-                    <span><i className={`lay lay-${l.id}`} aria-hidden="true" />{l.name}</span>
-                  </label>
-                ))}
-              </div>
-            </fieldset>
-
-            <fieldset className="dgroup">
-              <legend>Emblem</legend>
-              <div className="chips-row emblems">
-                {EMBLEMS.map((m) => (
-                  <label key={m.id} className="pill icon" title={m.name}>
-                    <input type="radio" name={radio("emblem")} checked={design.emblem === m.id} onChange={() => set({ emblem: m.id })} />
-                    <span>{m.id === "none" ? "None" : <EmblemArt emblem={m.id} />}<span className="sr-only">{m.id === "none" ? "" : m.name}</span></span>
-                  </label>
-                ))}
-              </div>
-            </fieldset>
-
-            {photos.length > 0 && (
-              <fieldset className="dgroup">
-                <legend>Cover photo</legend>
-                <div className="photo-pick">
-                  <label className="pill">
-                    <input type="radio" name={radio("photo")} checked={!design.coverPhoto} onChange={() => set({ coverPhoto: null })} />
-                    <span>No photo</span>
-                  </label>
-                  {photos.slice(0, 24).map((p) => (
-                    <label key={p.id} className={`thumb${design.coverPhoto === p.id ? " on" : ""}`}>
-                      <input type="radio" name={radio("photo")} checked={design.coverPhoto === p.id} onChange={() => set({ coverPhoto: p.id })} />
-                      <img src={p.url} alt={p.caption || "A photo from the book"} loading="lazy" />
-                    </label>
-                  ))}
-                </div>
-              </fieldset>
-            )}
-          </div>
-        )}
-
-        {tab === "stickers" && (
-          <div className="dgroup-list" role="tabpanel" id={`${idPrefix}-panel-stickers`} aria-labelledby={`${idPrefix}-tab-stickers`}>
-            <p className="dhelp">{full ? `That's all ${MAX_STICKERS} stickers. Peel one off to add another.` : "Drag a sticker onto the cover, or tap one to stick it on."}</p>
-            <div className="tray" role="group" aria-label="Sticker sheet">
-              {STICKER_KINDS.map((s) => (
-                <button key={s.k} type="button" className="tray-item" disabled={full} aria-label={`Add ${s.name}`} title={s.name}
-                  onPointerDown={(e) => trayDown(s.k, e)} onClick={() => !dragged.current && addSticker(s.k)}>
-                  <StickerArt kind={s.k} />
-                </button>
+          <fieldset className="dgroup">
+            <legend>Finish</legend>
+            <div className="chips-row">
+              {TEXTURES.map((t) => (
+                <label key={t.id} className="pill">
+                  <input type="radio" name={radio("tex")} checked={design.texture === t.id} onChange={() => set({ texture: t.id })} />
+                  <span>{t.name}</span>
+                </label>
               ))}
             </div>
-            <div className="sel-bar" aria-live="polite">
-              {selected != null && design.stickers[selected] ? (
-                <>
-                  <span className="sel-name">{NAME[design.stickers[selected].k]}</span>
-                  <button type="button" className="btn line small icon" onClick={() => turn(selected, -15)} aria-label="Turn left"><Icon name="rotl" /></button>
-                  <button type="button" className="btn line small icon" onClick={() => turn(selected, 15)} aria-label="Turn right"><Icon name="rotr" /></button>
-                  <button type="button" className="btn line small icon" onClick={() => grow(selected, -0.15)} aria-label="Smaller"><Icon name="smaller" /></button>
-                  <button type="button" className="btn line small icon" onClick={() => grow(selected, 0.15)} aria-label="Bigger"><Icon name="bigger" /></button>
-                  <button type="button" className="btn line small" onClick={() => peel(selected)}>Peel off</button>
-                </>
-              ) : (
-                <span className="dhelp">{design.stickers.length ? "Tap a sticker on the cover to turn, resize or peel it." : "Your cover has no stickers yet."}</span>
-              )}
-            </div>
-            {design.stickers.length > 0 && (
-              <button type="button" className="link-btn" onClick={() => { setStickers(() => []); setAnnounce("All stickers peeled off."); }}>Peel off all stickers</button>
-            )}
-          </div>
-        )}
+          </fieldset>
 
-        {tab === "pages" && (
-          <div className="dgroup-list" role="tabpanel" id={`${idPrefix}-panel-pages`} aria-labelledby={`${idPrefix}-tab-pages`}>
+          <fieldset className="dgroup">
+            <legend>Foil</legend>
+            <div className="swatches">
+              {FOILS.map((f) => (
+                <label key={f.id} className={swatch(design.foil === f.id)} title={f.name}>
+                  <input type="radio" name={radio("foil")} checked={design.foil === f.id} onChange={() => set({ foil: f.id })} />
+                  <span className="foil-chip" style={{ background: `linear-gradient(135deg, ${f.lo}, ${f.hi} 40%, ${f.mid} 60%, ${f.lo})` }} />
+                  <span className="sr-only">{f.name}</span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
+
+          <fieldset className="dgroup">
+            <legend>Title type</legend>
+            <div className="chips-row">
+              {TITLE_FONTS.map((f) => (
+                <label key={f.id} className="pill font">
+                  <input type="radio" name={radio("font")} checked={design.titleFont === f.id} onChange={() => set({ titleFont: f.id })} />
+                  <span style={{ fontFamily: f.family, fontStyle: f.id === "classic" ? "italic" : undefined, fontWeight: f.id === "modern" ? 800 : undefined }}>{f.name}</span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
+
+          <fieldset className="dgroup">
+            <legend>Layout</legend>
+            <div className="chips-row">
+              {LAYOUTS.map((l) => (
+                <label key={l.id} className="pill layout">
+                  <input type="radio" name={radio("layout")} checked={design.layout === l.id} onChange={() => set({ layout: l.id })} />
+                  <span><i className={`lay lay-${l.id}`} aria-hidden="true" />{l.name}</span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
+
+          <fieldset className="dgroup">
+            <legend>Emblem</legend>
+            <div className="chips-row emblems">
+              {EMBLEMS.map((m) => (
+                <label key={m.id} className="pill icon" title={m.name}>
+                  <input type="radio" name={radio("emblem")} checked={design.emblem === m.id} onChange={() => set({ emblem: m.id })} />
+                  <span>{m.id === "none" ? "None" : <EmblemArt emblem={m.id} />}<span className="sr-only">{m.id === "none" ? "" : m.name}</span></span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
+
+          {photos.length > 0 && (
             <fieldset className="dgroup">
-              <legend>Paper</legend>
-              <div className="papers">
-                {PAPERS.map((p) => (
-                  <label key={p.id} className={`paper-chip${design.paper === p.id ? " on" : ""}`}>
-                    <input type="radio" name={radio("paper")} checked={design.paper === p.id} onChange={() => set({ paper: p.id })} />
-                    <span className={`paper-swatch ps-${p.id}`} aria-hidden="true" />
-                    <span>{p.name}</span>
+              <legend>Cover photo</legend>
+              <div className="photo-pick">
+                <label className="pill">
+                  <input type="radio" name={radio("photo")} checked={!design.coverPhoto} onChange={() => set({ coverPhoto: null })} />
+                  <span>No photo</span>
+                </label>
+                {photos.slice(0, 24).map((p) => (
+                  <label key={p.id} className={`thumb${design.coverPhoto === p.id ? " on" : ""}`}>
+                    <input type="radio" name={radio("photo")} checked={design.coverPhoto === p.id} onChange={() => set({ coverPhoto: p.id })} />
+                    <img src={p.url} alt={p.caption || "A photo from the book"} loading="lazy" />
                   </label>
                 ))}
               </div>
             </fieldset>
+          )}
+        </div>
+      )}
+
+      {tab === "stickers" && (
+        <div className="dgroup-list" role="tabpanel" id={`${idPrefix}-panel-stickers`} aria-labelledby={`${idPrefix}-tab-stickers`}>
+          {extras?.stickers}
+          <p className="dhelp">{full ? `That's all ${MAX_STICKERS} stickers. Peel one off to add another.` : "Drag a sticker onto the cover, or tap one to stick it on."}</p>
+          <div className="tray" role="group" aria-label="Sticker sheet">
+            {STICKER_KINDS.map((s) => (
+              <button key={s.k} type="button" className="tray-item" disabled={full} aria-label={`Add ${s.name}`} title={s.name}
+                onPointerDown={(e) => trayDown(s.k, e)} onClick={() => !dragged.current && addSticker(s.k)}>
+                <StickerArt kind={s.k} />
+              </button>
+            ))}
+          </div>
+          <div className="sel-bar" aria-live="polite">
+            {selected != null && design.stickers[selected] ? (
+              <>
+                <span className="sel-name">{NAME[design.stickers[selected].k]}</span>
+                <button type="button" className="btn line small icon" onClick={() => turn(selected, -15)} aria-label="Turn left"><Icon name="rotl" /></button>
+                <button type="button" className="btn line small icon" onClick={() => turn(selected, 15)} aria-label="Turn right"><Icon name="rotr" /></button>
+                <button type="button" className="btn line small icon" onClick={() => grow(selected, -0.15)} aria-label="Smaller"><Icon name="smaller" /></button>
+                <button type="button" className="btn line small icon" onClick={() => grow(selected, 0.15)} aria-label="Bigger"><Icon name="bigger" /></button>
+                <button type="button" className="btn line small" onClick={() => peel(selected)}>Peel off</button>
+              </>
+            ) : (
+              <span className="dhelp">{design.stickers.length ? "Tap a sticker on the cover to turn, resize or peel it." : "Your cover has no stickers yet."}</span>
+            )}
+          </div>
+          {design.stickers.length > 0 && (
+            <button type="button" className="link-btn" onClick={() => { setStickers(() => []); setAnnounce("All stickers peeled off."); }}>Peel off all stickers</button>
+          )}
+        </div>
+      )}
+
+      {tab === "pages" && (
+        <div className="dgroup-list" role="tabpanel" id={`${idPrefix}-panel-pages`} aria-labelledby={`${idPrefix}-tab-pages`}>
+          {extras?.pages}
+          <fieldset className="dgroup">
+            <legend>Paper</legend>
+            <div className="papers">
+              {PAPERS.map((p) => (
+                <label key={p.id} className={`paper-chip${design.paper === p.id ? " on" : ""}`}>
+                  <input type="radio" name={radio("paper")} checked={design.paper === p.id} onChange={() => set({ paper: p.id })} />
+                  <span className={`paper-swatch ps-${p.id}`} aria-hidden="true" />
+                  <span>{p.name}</span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
+          {photoStyles && (
             <fieldset className="dgroup">
               <legend>Photos</legend>
               <div className="chips-row">
@@ -399,30 +445,62 @@ export function CoverDesigner({ design, onChange, title, subtitle, photos = [], 
                 ))}
               </div>
             </fieldset>
-            <fieldset className="dgroup">
-              <legend>Ink for postmarks and pins</legend>
-              <div className="swatches">
-                {ACCENTS.map((a) => (
-                  <label key={a.id} className={swatch(design.accent === a.id)} title={a.name}>
-                    <input type="radio" name={radio("accent")} checked={design.accent === a.id} onChange={() => set({ accent: a.id })} />
-                    <span className="cloth-chip round" style={{ background: a.hex }} />
-                    <span className="sr-only">{a.name}</span>
-                  </label>
-                ))}
-              </div>
-            </fieldset>
-          </div>
-        )}
-
-        {footer}
-        <p className="sr-only" aria-live="polite">{announce}</p>
-      </div>
-
-      {ghost && (
-        <span className="sticker-ghost" style={{ left: ghost.x, top: ghost.y }} aria-hidden="true">
-          <StickerArt kind={ghost.k} />
-        </span>
+          )}
+          <fieldset className="dgroup">
+            <legend>Ink for postmarks and pins</legend>
+            <div className="swatches">
+              {ACCENTS.map((a) => (
+                <label key={a.id} className={swatch(design.accent === a.id)} title={a.name}>
+                  <input type="radio" name={radio("accent")} checked={design.accent === a.id} onChange={() => set({ accent: a.id })} />
+                  <span className="cloth-chip round" style={{ background: a.hex }} />
+                  <span className="sr-only">{a.name}</span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
+        </div>
       )}
+    </>
+  );
+
+  const after = (
+    <>
+      {footer}
+      <p className="sr-only" aria-live="polite">{announce}</p>
+    </>
+  );
+  const dragging = ghost && (
+    <span className="sticker-ghost" style={{ left: ghost.x, top: ghost.y }} aria-hidden="true">
+      <StickerArt kind={ghost.k} />
+    </span>
+  );
+
+  if (stacked) {
+    return (
+      <div className={`designer stacked on-${tab}`}>
+        {header}
+        {stage}
+        {tabs}
+        <div className="designer-panel">
+          {panels}
+          {after}
+        </div>
+        {dragging}
+      </div>
+    );
+  }
+
+  return (
+    <div className="designer">
+      {stage}
+      <div className="designer-panel">
+        {header}
+        {presets}
+        {tabs}
+        {panels}
+        {after}
+      </div>
+      {dragging}
     </div>
   );
 }

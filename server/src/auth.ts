@@ -62,17 +62,44 @@ export function limiter(max: number, windowMs: number) {
 
 export type Auth = ReturnType<typeof createAuth>;
 
-/** Email-and-password accounts. A session is a random token in an HTTP-only cookie; only its hash is stored. */
+/**
+ * Pages the phone apps load from: Capacitor serves the bundled client at localhost (any port, so the app can also be
+ * previewed in a desktop browser). Cookies are SameSite=Lax, so a page on localhost never gets the website's session.
+ */
+export const isAppOrigin = (origin: string) => /^(https?|capacitor):\/\/localhost(:\d+)?$/.test(origin);
+
+/** The phone apps say so on every request; they keep their session token themselves instead of in a cookie. */
+const fromApp = (req: Request) => req.get("x-ninre-app") === "1";
+
+function bearer(req: Request): string | undefined {
+  const h = req.get("authorization");
+  return h?.startsWith("Bearer ") ? h.slice(7).trim() || undefined : undefined;
+}
+
+/** What the apps keep after signing in: the token to send, and the key that lets their <img> tags load photos. */
+export interface AppSession {
+  token: string;
+  photoKey: string;
+}
+
+/**
+ * Email-and-password accounts. A session is a random token; only its hash is stored. The website keeps the token in an
+ * HTTP-only cookie. The phone apps get it back in the response and send it as a bearer token, and since an image can't
+ * send a header, they load photos with the token's hash as a key: it opens photos and nothing else.
+ */
 export function createAuth(store: Store) {
-  function startSession(req: Request, res: Response, userId: string) {
+  /** Starts a session. For the apps it returns the token and photo key to keep; the website gets a cookie instead. */
+  function startSession(req: Request, res: Response, userId: string): AppSession | undefined {
     const token = randomBytes(32).toString("base64url");
     const maxAge = SESSION_DAYS * 864e5;
     store.sessions.create(tokenHash(token), userId, Date.now() + maxAge);
+    if (fromApp(req)) return { token, photoKey: tokenHash(token) };
     res.cookie(COOKIE, token, { httpOnly: true, sameSite: "lax", secure: req.secure, maxAge, path: "/" });
+    return undefined;
   }
 
   function currentHash(req: Request): string | undefined {
-    const token = readCookie(req, COOKIE);
+    const token = bearer(req) ?? readCookie(req, COOKIE);
     return token ? tokenHash(token) : undefined;
   }
 
@@ -86,16 +113,26 @@ export function createAuth(store: Store) {
     currentHash,
     userOf,
 
+    /** Like requireUser, but also accepts an app's photo key in ?k=, for photo files only. */
+    requireViewer: ((req, res, next) => {
+      const k = typeof req.query.k === "string" && /^[a-f0-9]{64}$/.test(req.query.k) ? req.query.k : undefined;
+      const user = userOf(req) ?? (k ? store.sessions.user(k) : undefined);
+      if (!user) return void res.status(401).json({ error: "Log in to continue." });
+      res.locals.user = user;
+      next();
+    }) as RequestHandler,
+
     endSession(req: Request, res: Response) {
       const h = currentHash(req);
       if (h) store.sessions.remove(h);
       res.clearCookie(COOKIE, { httpOnly: true, sameSite: "lax", secure: req.secure, path: "/" });
     },
 
-    /** Requires a signed-in person and puts them in res.locals.user. */
+    /** Requires a signed-in person who has confirmed their email, and puts them in res.locals.user. */
     requireUser: ((req, res, next) => {
       const user = userOf(req);
       if (!user) return void res.status(401).json({ error: "Log in to continue." });
+      if (!user.verified) return void res.status(403).json({ error: "Confirm your email to continue. We sent you a link.", code: "verify" });
       res.locals.user = user;
       next();
     }) as RequestHandler,
@@ -126,11 +163,27 @@ export function requireMember(store: Store, need: Role | "any" = "any"): Request
 export const sameOrigin: RequestHandler = (req, res, next) => {
   if (req.method === "GET" || req.method === "HEAD" || req.method === "OPTIONS") return next();
   const origin = req.headers.origin;
-  if (!origin) return next();
+  // The apps sign requests with a bearer token, which another site can't make a browser attach.
+  if (!origin || isAppOrigin(origin)) return next();
   try {
     if (new URL(origin).host === req.headers.host) return next();
   } catch {
     // fall through to the refusal
   }
   res.status(403).json({ error: "That request came from another site." });
+};
+
+/** Lets the phone apps, which load from localhost, call the API across origins. Cookies are never involved. */
+export const appCors: RequestHandler = (req, res, next) => {
+  const origin = req.headers.origin;
+  if (!origin || !isAppOrigin(origin)) return next();
+  res.set({
+    "Access-Control-Allow-Origin": origin,
+    "Access-Control-Allow-Headers": "Authorization, Content-Type, X-NinRe-App",
+    "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE",
+    "Access-Control-Max-Age": "600",
+    Vary: "Origin",
+  });
+  if (req.method === "OPTIONS") return void res.status(204).end();
+  next();
 };

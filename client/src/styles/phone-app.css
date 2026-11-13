@@ -1,0 +1,24 @@
+/* ---------- The phone app: what changes when NinRe runs inside the Android or iOS shell (html.in-app) ---------- */
+
+/* It should feel like an app, not a page: no grey flash on taps, no page bounce, and buttons don't select as text. */
+.in-app { -webkit-tap-highlight-color: transparent; overscroll-behavior: none; }
+.in-app body { overscroll-behavior: none; }
+.in-app :is(button, a, .spine, .pb-btn, .dock-app, label) { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+.in-app img { -webkit-touch-callout: none; }
+
+/* The bar has no website navigation: the wordmark or a way back on the left, theme and account on the right. */
+.in-app .appbar-in { grid-template-columns: 1fr auto; }
+.app-back {
+  justify-self: start; display: inline-flex; align-items: center; gap: 4px; min-height: 44px; padding: 0 12px 0 4px; margin-left: -6px; border-radius: 999px;
+  color: var(--ink); font-weight: 750; font-size: 1rem; text-decoration: none;
+}
+.app-back svg { width: 22px; height: 22px; }
+.app-back:active { background: color-mix(in oklab, var(--ink) 8%, transparent); }
+
+/* Signing in: the wordmark clears the status bar. */
+.in-app .auth-window { padding-top: calc(76px + var(--safe-top)); padding-bottom: calc(24px + var(--safe-bottom)); }
+.in-app .auth .topnav { padding-top: var(--safe-top); }
+
+/* A pressed control answers the finger straight away. */
+.in-app :is(.head-btn, .tabbar a, .pb-btn, .btn):active { transform: scale(.97); }
+@media (prefers-reduced-motion: reduce) { .in-app :is(.head-btn, .tabbar a, .pb-btn, .btn):active { transform: none; } }

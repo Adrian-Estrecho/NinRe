@@ -6,3 +6,7 @@ data/
 .DS_Store
 Thumbs.db
 client/.impeccable/
+
+# Generated
+graphify-out/
+*.tsbuildinfo

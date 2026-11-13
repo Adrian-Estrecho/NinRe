@@ -24,8 +24,9 @@ const note = (pageId: string, who: keyof typeof SAMPLE_PEOPLE, text: string, col
   id: `sample-note-${++noteN}`, pageId, author: SAMPLE_PEOPLE[who], text, color, createdAt: noteN, updatedAt: noteN,
 });
 
-const sample = (n: number, who: keyof typeof SAMPLE_PEOPLE, page: Omit<Page, "id" | "sample" | "createdAt" | "updatedAt" | "author" | "notes">, notes: [keyof typeof SAMPLE_PEOPLE, string, NoteColor][] = []): Page => ({
+const sample = (n: number, who: keyof typeof SAMPLE_PEOPLE, page: Omit<Page, "id" | "sample" | "createdAt" | "updatedAt" | "author" | "notes" | "layout">, notes: [keyof typeof SAMPLE_PEOPLE, string, NoteColor][] = []): Page => ({
   ...page,
+  layout: "",
   id: `sample-${n}`,
   sample: true,
   author: SAMPLE_PEOPLE[who],

@@ -1,17 +1,18 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { api, errorText } from "../api";
-import { Book3D } from "../book/Book3D";
 import { DEFAULT_DESIGN } from "../book/design";
+import { Icon } from "../components/Icon";
 import { createFromPending, readPending } from "../lib/pending";
+import { holdStatusBar } from "../lib/shell";
 import { Link, navigate, useLocation, useTitle } from "../router";
 import { useSession } from "../session";
+import { BookAside, carryOf, leaveSignIn } from "./Onboarding";
 
-/** Sign up and log in, on the same table as the website. */
-export function AuthPage({ mode }: { mode: "login" | "signup" }) {
+/** Logging in, on the same white page as signing up. New accounts start at /signup (Onboarding). */
+export function AuthPage() {
   const { query } = useLocation();
   const { refresh } = useSession();
-  useTitle(mode === "login" ? "Log in" : "Start your book");
-  const [name, setName] = useState("");
+  useTitle("Log in");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [show, setShow] = useState(false);
@@ -20,25 +21,25 @@ export function AuthPage({ mode }: { mode: "login" | "signup" }) {
   const pending = readPending();
   const invite = query.get("invite");
   const plan = query.get("plan");
-  const carry = new URLSearchParams([...query.entries()].filter(([k]) => ["invite", "plan", "next"].includes(k))).toString();
+  const carry = carryOf(query);
+  // The top of the screen is the blue backdrop, so the status bar takes light icons.
+  useEffect(() => holdStatusBar("dark"), []);
 
   async function submit(e: FormEvent) {
     e.preventDefault();
     if (busy) return;
     setError("");
-    if (mode === "signup" && !name.trim()) return setError("Tell us your name. It goes on the pages you write.");
     if (!email.trim()) return setError("Add your email address.");
-    if (mode === "signup" && password.length < 8) return setError("Use at least 8 characters for your password.");
+    if (!password) return setError("Add your password.");
     setBusy(true);
     try {
-      if (mode === "signup") await api.signup(name.trim(), email.trim(), password);
-      else await api.login(email.trim(), password);
+      await api.login(email.trim(), password);
       const me = await refresh();
       if (invite) return navigate(`/join/${encodeURIComponent(invite)}`, { replace: true });
       if (plan === "plus" || plan === "crew") return navigate(`/app/account?upgrade=${plan}`, { replace: true });
       const next = query.get("next");
       if (next && /^\/(app|checkout)\//.test(next)) return navigate(next, { replace: true });
-      if (me && me.books.length === 0 && (pending || query.get("next") === "new")) {
+      if (me && me.books.length === 0 && (pending || next === "new")) {
         const id = await createFromPending();
         await refresh();
         return navigate(`/app/book/${id}?welcome=1`, { replace: true });
@@ -50,56 +51,48 @@ export function AuthPage({ mode }: { mode: "login" | "signup" }) {
     }
   }
 
-  const heading = mode === "signup" ? (invite ? "Join the book" : "Start your book") : "Welcome back";
   return (
-    <div className="daylight auth">
-      <div className="auth-window">
-        <nav className="topnav" aria-label="Main">
-          <span />
-          <Link href="/" className="wordmark">NinRe</Link>
-          <span />
-        </nav>
+    <div className="daylight onb onb-login">
+      <div className="onb-frame">
+        <header className="onb-top">
+          <button type="button" className="onb-back" onClick={() => leaveSignIn(carry)} aria-label="Back"><Icon name="back" /></button>
+          <Link href="/" className="onb-word">NinRe</Link>
+          <span className="onb-skip" aria-hidden="true" />
+        </header>
+        <form className="login" onSubmit={submit} noValidate>
+          <h1>Welcome back</h1>
+          <p className="sub">{invite ? "Log in, then you're straight into the book you were invited to." : "Your books are on the shelf, just as you left them."}</p>
 
-        <div className="auth-grid">
-          <div className="auth-show" aria-hidden="true">
-            <Book3D design={pending?.design ?? DEFAULT_DESIGN} title={pending?.title || "Our Book of Travels"} subtitle={name.trim() || undefined} width="min(270px, 24vw)" turnable={false} />
-            {pending?.design && mode === "signup" && <p className="auth-note">Your cover is ready. It goes on your first book.</p>}
+          {/* Just the two fields and the button, on one white card over the edge of the blue. */}
+          <div className="login-card">
+            <div className="login-fld">
+              <label htmlFor="li-email">Email</label>
+              <div className="login-box">
+                <Icon name="mail" className="login-icon" />
+                <input id="li-email" type="email" autoComplete="email" inputMode="email" placeholder="you@example.com"
+                  value={email} onChange={(e) => setEmail(e.target.value)} autoFocus />
+              </div>
+            </div>
+            <div className="login-fld">
+              <label htmlFor="li-pass">Password</label>
+              <div className="login-box">
+                <Icon name="lock" className="login-icon" />
+                <input id="li-pass" type={show ? "text" : "password"} autoComplete="current-password" placeholder="Your password"
+                  value={password} onChange={(e) => setPassword(e.target.value)} />
+                <button type="button" className="login-show" onClick={() => setShow(!show)} aria-pressed={show}>{show ? "Hide" : "Show"}</button>
+              </div>
+            </div>
+            {error && <p className="onb-err" role="alert">{error}</p>}
+            <button type="submit" className="btn sun login-go" disabled={busy}>
+              {busy ? "Logging in…" : "Log in"}
+              {!busy && <Icon name="right" />}
+            </button>
           </div>
 
-          <form className="auth-card" onSubmit={submit} noValidate>
-            <h1>{heading}</h1>
-            <p className="sub">
-              {mode === "signup"
-                ? invite ? "Make an account, then you're straight into the book." : "Free for one book and two people. No card needed."
-                : "Log in to open your books."}
-            </p>
-            {mode === "signup" && (
-              <div className="fld">
-                <label htmlFor="a-name">Your name</label>
-                <input id="a-name" type="text" autoComplete="name" maxLength={40} value={name} onChange={(e) => setName(e.target.value)} autoFocus />
-              </div>
-            )}
-            <div className="fld">
-              <label htmlFor="a-email">Email</label>
-              <input id="a-email" type="email" autoComplete="email" inputMode="email" value={email} onChange={(e) => setEmail(e.target.value)} autoFocus={mode === "login"} />
-            </div>
-            <div className="fld">
-              <label htmlFor="a-pass">Password</label>
-              <div className="pass-row">
-                <input id="a-pass" type={show ? "text" : "password"} autoComplete={mode === "signup" ? "new-password" : "current-password"} value={password} onChange={(e) => setPassword(e.target.value)} />
-                <button type="button" className="link-btn" onClick={() => setShow(!show)} aria-pressed={show}>{show ? "Hide" : "Show"}</button>
-              </div>
-              {mode === "signup" && <span className="hint">At least 8 characters.</span>}
-            </div>
-            {error && <p className="err" role="alert">{error}</p>}
-            <button type="submit" className="btn" disabled={busy}>{busy ? (mode === "signup" ? "Making your account…" : "Logging in…") : mode === "signup" ? "Create my account" : "Log in"}</button>
-            <p className="switch">
-              {mode === "signup" ? "Already have an account? " : "New to NinRe? "}
-              <Link href={`/${mode === "signup" ? "login" : "signup"}${carry ? `?${carry}` : ""}`}>{mode === "signup" ? "Log in" : "Start a book, free"}</Link>
-            </p>
-          </form>
-        </div>
+          <p className="onb-switch">New to NinRe? <Link href={`/signup${carry ? `?${carry}` : ""}`}>Start a book, free</Link></p>
+        </form>
       </div>
+      <BookAside design={pending?.design ?? DEFAULT_DESIGN} title={pending?.title || "Our Book of Travels"} note="Pick up where you left off" />
     </div>
   );
 }

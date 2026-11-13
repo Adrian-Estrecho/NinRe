@@ -37,7 +37,7 @@
 
 .dgroup-list { display: flex; flex-direction: column; gap: 16px; animation: rise .35s var(--ease-out); }
 .dgroup { border: 0; margin: 0; padding: 0; min-width: 0; display: flex; flex-direction: column; gap: 9px; }
-.dgroup legend { padding: 0; margin-bottom: 9px; font-size: .84rem; font-weight: 750; color: var(--ink-soft); }
+.dgroup legend, .dgroup-h { padding: 0; margin-bottom: 9px; font-size: .84rem; font-weight: 750; color: var(--ink-soft); }
 .dhelp { margin: 0; font-size: .92rem; color: var(--ink-soft); }
 
 .swatches { display: flex; flex-wrap: wrap; gap: 8px; }

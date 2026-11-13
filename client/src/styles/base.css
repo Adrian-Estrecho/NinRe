@@ -15,7 +15,7 @@ button { cursor: pointer; }
 button:disabled { cursor: not-allowed; }
 a { color: inherit; text-underline-offset: .18em; text-decoration-thickness: 1px; }
 :focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; border-radius: 4px; }
-::selection { background: var(--sun); color: #14202b; }
+::selection { background: var(--sun); color: #13283f; }
 h1, h2, h3 { text-wrap: balance; }
 p { text-wrap: pretty; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
@@ -27,8 +27,20 @@ html { scrollbar-color: color-mix(in oklab, var(--ink) 28%, transparent) transpa
 ::-webkit-scrollbar { width: 12px; height: 12px; }
 ::-webkit-scrollbar-thumb { background: color-mix(in oklab, var(--ink) 24%, transparent); border-radius: 99px; border: 3px solid transparent; background-clip: padding-box; }
 
-/* The white page (deep ink at night): the ground of every working screen, as on the website */
-.paper-ground { background-color: var(--bg); }
+/*
+ * The sky: the ground of every screen. A fixed gradient (with stars at night) over a far mountain range that mists away
+ * at the foot, and a slow drift of haze above it, painted on the body so every page, the library and the phone frame
+ * share one sky. Screens leave their own ground transparent; glass (glass.css) frosts whatever is behind it.
+ */
+body::before, body::after { content: ""; position: fixed; pointer-events: none; }
+body::before {
+  inset: 0; z-index: -2;
+  background: linear-gradient(180deg, transparent 74%, var(--mist)), var(--ridges) 50% 100% / max(100%, 1100px) auto no-repeat, var(--stars) 0 0 / 220px 220px, var(--sky);
+}
+body::after { inset: 0 -14%; z-index: -1; background: var(--haze); animation: sky-drift 120s ease-in-out infinite alternate; }
+@keyframes sky-drift { from { transform: translateX(-4%); } to { transform: translateX(4%); } }
+/* A screen standing in the sky lets it show through. */
+.paper-ground { background-color: transparent; }
 
 /* Buttons */
 .btn {
@@ -36,10 +48,10 @@ html { scrollbar-color: color-mix(in oklab, var(--ink) 28%, transparent) transpa
   display: inline-flex; align-items: center; justify-content: center; gap: 8px; white-space: nowrap;
   border: 1px solid transparent; border-radius: 999px; padding: 10px 18px; min-height: 42px;
   background: var(--b-bg); color: var(--b-fg); font-weight: 650; font-size: .94rem; text-decoration: none;
-  box-shadow: 0 1px 0 rgba(255, 255, 255, .12) inset, 0 6px 14px -8px rgba(10, 18, 26, .55);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, .14) inset, 0 8px 16px -9px rgba(30, 70, 130, .5);
   transition: transform .2s var(--ease-out), box-shadow .2s var(--ease-out), background-color .2s;
 }
-.btn:hover { transform: translateY(-1px); box-shadow: 0 1px 0 rgba(255, 255, 255, .12) inset, 0 10px 18px -10px rgba(10, 18, 26, .6); }
+.btn:hover { transform: translateY(-1px); box-shadow: 0 1px 0 rgba(255, 255, 255, .14) inset, 0 12px 22px -10px rgba(30, 70, 130, .55); }
 .btn:active { transform: translateY(0) scale(.98); }
 .btn:disabled { opacity: .55; transform: none; }
 .btn svg { width: 18px; height: 18px; flex: none; }
@@ -59,7 +71,7 @@ html { scrollbar-color: color-mix(in oklab, var(--ink) 28%, transparent) transpa
 .fld { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 .fld > label, .fld > .lbl { font-size: .84rem; font-weight: 650; color: var(--ink-soft); }
 .input, .fld input[type="text"], .fld input[type="email"], .fld input[type="password"], .fld input[type="date"], .fld select {
-  width: 100%; min-width: 0; min-height: 44px; padding: 10px 14px; border: 1px solid var(--line-2); border-radius: 6px;
+  width: 100%; min-width: 0; min-height: 44px; padding: 10px 14px; border: 1px solid var(--line-2); border-radius: var(--r-field);
   background: var(--card); font-size: 1rem; transition: border-color .15s, box-shadow .15s;
 }
 .input:focus, .fld input:focus, .fld select:focus { outline: none; border-color: var(--azure); box-shadow: 0 0 0 3px color-mix(in oklab, var(--azure) 22%, transparent); }
@@ -71,8 +83,8 @@ html { scrollbar-color: color-mix(in oklab, var(--ink) 28%, transparent) transpa
 
 /* Toast */
 .toast {
-  position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 22px); transform: translateX(-50%); z-index: 60;
-  background: #14202b; color: #f6f5f0; padding: 11px 18px; border-radius: 999px; font-size: .94rem; font-weight: 550;
+  position: fixed; left: 50%; bottom: calc(var(--safe-bottom) + 22px); transform: translateX(-50%); z-index: 60;
+  background: #13283f; color: #f4f9ff; padding: 11px 18px; border-radius: 999px; font-size: .94rem; font-weight: 550;
   box-shadow: 0 14px 30px -12px rgba(0, 0, 0, .5); max-width: calc(100% - 32px); animation: toast-in .35s var(--ease-out);
 }
 @keyframes toast-in { from { opacity: 0; transform: translate(-50%, 10px); } }
@@ -81,17 +93,17 @@ html { scrollbar-color: color-mix(in oklab, var(--ink) 28%, transparent) transpa
 dialog {
   border: 0; padding: 0; background: transparent; color: var(--ink); width: 100%; height: 100%; max-width: none; max-height: none; margin: 0; overflow: auto;
   padding-left: var(--gutter-l); padding-right: var(--gutter-r);
-  padding-block: calc(env(safe-area-inset-top, 0px) + 28px) calc(env(safe-area-inset-bottom, 0px) + 28px);
+  padding-block: calc(var(--safe-top) + 28px) calc(var(--safe-bottom) + 28px);
 }
 dialog::backdrop { background: var(--veil); backdrop-filter: blur(3px); }
 .close-x {
-  position: fixed; z-index: 3; top: calc(env(safe-area-inset-top, 0px) + 12px); right: calc(env(safe-area-inset-right, 0px) + 14px);
+  position: fixed; z-index: 3; top: calc(var(--safe-top) + 12px); right: calc(env(safe-area-inset-right, 0px) + 14px);
   width: 42px; height: 42px; border-radius: 50%; border: 1px solid var(--line-2); background: var(--card); color: var(--ink); display: grid; place-items: center; padding: 0;
 }
 .close-x svg { width: 18px; height: 18px; }
 .panel {
-  max-width: 560px; margin: 0 auto; background: var(--card); border-radius: 4px; padding: clamp(20px, 4vw, 34px);
-  box-shadow: 0 40px 70px -30px rgba(0, 0, 0, .55); display: flex; flex-direction: column; gap: 18px; animation: rise .45s var(--ease-out);
+  max-width: 560px; margin: 0 auto; background: var(--card); border-radius: var(--r-card); padding: clamp(20px, 4vw, 34px);
+  box-shadow: var(--lift-lg); display: flex; flex-direction: column; gap: 18px; animation: rise .45s var(--ease-out);
 }
 .panel.wide { max-width: 760px; }
 .panel h2 { font-size: clamp(1.5rem, 3vw, 1.9rem); line-height: .95; margin: 0; font-weight: 870; text-transform: uppercase; font-stretch: 112%; letter-spacing: -.03em; }
@@ -102,7 +114,7 @@ dialog::backdrop { background: var(--veil); backdrop-filter: blur(3px); }
 
 .loading-line { margin: 64px auto; text-align: center; color: var(--ink-soft); }
 .notice {
-  display: flex; gap: 12px; align-items: flex-start; padding: 12px 16px; border-radius: 4px; font-size: .94rem;
+  display: flex; gap: 12px; align-items: flex-start; padding: 12px 16px; border-radius: var(--r-sm); font-size: .94rem;
   background: var(--p-butter); color: #3b3418; border: 1px solid rgba(160, 130, 20, .25); box-shadow: var(--lift);
 }
 .notice b { font-weight: 750; white-space: nowrap; }

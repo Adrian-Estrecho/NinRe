@@ -1,25 +1,35 @@
 /*
  * The website is the trip coming home as pictures: a white page where travel photographs fade in, section by section,
  * and the book they end up in. It keeps its daylight palette whatever the device theme, because a print is a print.
- * Sign-in, invites and the test checkout (.daylight) still sit on the airmail-blue table and share the paper tokens.
+ * Sign-in, invites and the test checkout (.daylight) are always in daytime sky: a deep-blue band with soft clouds where
+ * white type sits, and the pale sky with white clouds everywhere else, whatever the device theme.
  */
 .landing, .daylight {
-  --table: #2a56b9; --table-hi: #3a6ad0; --table-lo: #1d418f;
-  --table-soft: #d3def6; --table-line: rgba(255, 255, 255, .24);
-  --bg: #f6f5f0; --card: #fffdf8; --card-2: #f1efe8;
-  --line: rgba(20, 32, 43, .12); --line-2: rgba(20, 32, 43, .22);
-  --ink: #14202b; --ink-soft: #46535e; --ink-faint: #5f6b75; --rule: rgba(20, 32, 43, .14); --shadow: rgba(20, 32, 43, .18);
+  /* The band: the sky at its deepest, overhead (it was the airmail-blue table) */
+  --table: #3a7fd6; --table-hi: #5ea6ec; --table-lo: #2659b8;
+  --table-soft: #e2effd; --table-line: rgba(255, 255, 255, .26);
+  --band: var(--haze-day), linear-gradient(176deg, var(--table-lo), var(--table) 52%, var(--table-hi));
+  /* The pale daytime sky, held here so these screens stay in daylight when the app goes to night */
+  --sky-top: #5f9bd6; --sky-mid: #a8cbec; --sky-low: #dbe9f6; --sky-end: #eaf2f9;
+  --sky: linear-gradient(180deg, var(--sky-top) 0%, var(--sky-mid) 28%, var(--sky-low) 60%, var(--sky-end) 100%);
+  --ridges: var(--ridges-day); --haze: var(--haze-day); --mist: rgba(236, 243, 250, .78); --stars: none;
+  --glass: rgba(255, 255, 255, .62); --glass-hi: rgba(255, 255, 255, .82); --glass-lo: rgba(255, 255, 255, .38);
+  --glass-edge: rgba(255, 255, 255, .78); --glass-shadow: inset 0 1px 0 rgba(255, 255, 255, .7), 0 12px 32px -14px rgba(35, 80, 140, .34);
+  --bg: #eef6ff; --card: #ffffff; --card-2: #eff6fe;
+  --line: rgba(32, 82, 145, .12); --line-2: rgba(32, 82, 145, .22);
+  --ink: #13283f; --ink-soft: #3a536f; --ink-faint: #50698a; --rule: rgba(32, 82, 145, .14); --shadow: rgba(45, 95, 160, .2);
   --focus: #ffd23f;
   --paper: #f6f1e4; --paper-2: #eee7d4; --paper-edge: #e0d8c3; --polaroid: #fbfaf6; --polaroid-ink: #2d3236; --tape: rgba(240, 222, 160, .82);
   --sea: #cfe0e6; --sea-2: #b9d0d8; --land: #f3ead3; --land-ink: #6b6655; --grat: rgba(58, 80, 86, .16);
-  --ink-blue: #2257b8; --ink-red: #b3352b; --ink-green: #2f7a4b; --ink-plum: #7a3a78;
-  /* Light comes from the window, top left, so paper casts its shadow down and to the right. */
-  --lift: 0 1px 1px rgba(9, 22, 58, .22), 6px 14px 24px -12px rgba(9, 22, 58, .62);
-  --lift-lg: 0 1px 2px rgba(9, 22, 58, .24), 14px 30px 48px -24px rgba(9, 22, 58, .7);
+  --ink-blue: #2563c4; --ink-red: #b3352b; --ink-green: #2f7a4b; --ink-plum: #7a3a78;
+  /* Light from above: soft blue shadows falling straight down. */
+  --lift: 0 1px 2px rgba(45, 95, 160, .12), 0 14px 30px -14px rgba(30, 70, 140, .5);
+  --lift-lg: 0 2px 4px rgba(45, 95, 160, .12), 0 30px 60px -26px rgba(30, 70, 140, .56);
+  --r-card: 28px; --r-sm: 18px; --r-field: 14px;
   --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9 .35' numOctaves='2' seed='5' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .06 0'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)'/%3E%3C/svg%3E");
   color-scheme: light; color: #fff;
+  background: var(--band);
   background-color: var(--table);
-  background-image: var(--grain), repeating-linear-gradient(0deg, rgba(255, 255, 255, .022) 0 1px, transparent 1px 9px), repeating-linear-gradient(0deg, rgba(0, 0, 0, .03) 0 2px, transparent 2px 31px);
 }
 /* The website itself: a white page, lit by soft daylight, so shadows are neutral rather than the table's navy. */
 .landing {
@@ -31,9 +41,9 @@
 }
 .landing :focus-visible, .daylight :focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
 .landing :is(.sheet, .pass, .envelope-in, .map-sheet, .fb), .daylight :is(.auth-card, .receipt) { --focus: #2257b8; }
-.landing .btn, .daylight .btn { --b-bg: #14202b; --b-fg: #fffdf8; }
-.landing .btn.line, .daylight .btn.line { --b-bg: #fffdf8; --b-fg: #14202b; border-color: rgba(20, 32, 43, .3); }
-.landing .btn.sun, .daylight .btn.sun { --b-bg: var(--sun); --b-fg: #14202b; box-shadow: 0 1px 0 rgba(255, 255, 255, .5) inset, 0 8px 16px -8px rgba(20, 32, 43, .5); }
+.landing .btn, .daylight .btn { --b-bg: #13283f; --b-fg: #ffffff; }
+.landing .btn.line, .daylight .btn.line { --b-bg: #ffffff; --b-fg: #13283f; border-color: rgba(32, 82, 145, .26); }
+.landing .btn.sun, .daylight .btn.sun { --b-bg: var(--sun); --b-fg: #13283f; box-shadow: 0 1px 0 rgba(255, 255, 255, .5) inset, 0 10px 20px -10px rgba(170, 120, 0, .55); }
 
 /* ---------- The first screen: a morning in Batanes that fades into the white page below the fold ---------- */
 .hero {

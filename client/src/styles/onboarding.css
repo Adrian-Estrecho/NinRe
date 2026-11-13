@@ -1,0 +1,511 @@
+/*
+ * Opening the app and signing up, in a daytime sky. The splash is the deep blue overhead with clouds parting; the
+ * welcome, the questions, the account and logging in stand in the pale sky with clouds drifting over (the body's sky,
+ * held in daylight by the rule below), one thing to a screen, with the book they're making beside them on wide screens.
+ */
+
+/* ---------- Splash: the wordmark, a paper plane along a dotted route, and today's postmark ---------- */
+.splash {
+  position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; overflow: hidden;
+  padding: var(--safe-top) 16px var(--safe-bottom);
+  transition: opacity .38s var(--ease-out);
+}
+.splash.out.lift { opacity: 0; }
+.splash::before, .splash::after { content: ""; position: absolute; pointer-events: none; }
+/* Haze drifting across, and the far mountains rising at the foot as it opens */
+.splash::before { inset: 0 -12%; background: var(--haze-day); animation: splash-part-l 2.6s var(--ease-out) both; }
+.splash::after {
+  inset: auto 0 0; height: 34%; opacity: .55;
+  background: var(--ridges-day) 50% 100% / max(100%, 900px) auto no-repeat; animation: splash-part-r 2.6s var(--ease-out) both;
+}
+@keyframes splash-part-l { from { transform: translateX(6%); opacity: .4; } }
+@keyframes splash-part-r { from { transform: translateY(14%); opacity: 0; } }
+.splash.still::before, .splash.still::after { animation: none; }
+.splash-in { position: relative; display: flex; flex-direction: column; align-items: center; transform: translateY(-3svh); transition: opacity .3s ease-out, transform .38s var(--ease-out); }
+.splash.out .splash-in { opacity: 0; transform: translateY(-3svh) scale(.96); }
+.splash-route { width: min(250px, 64vw); height: auto; overflow: visible; margin-bottom: -6px; margin-left: 18%; }
+.splash-trail { fill: none; stroke: rgba(255, 255, 255, .7); stroke-width: 2.2; stroke-linecap: round; stroke-dasharray: .1 8; }
+.splash-reveal { fill: none; stroke: #fff; stroke-width: 12; }
+.splash-dot { fill: none; stroke: rgba(255, 255, 255, .8); stroke-width: 2; animation: splash-fade .3s both; }
+.splash-plane { fill: #fff; opacity: 0; animation: splash-fade .2s .2s forwards; }
+.splash-word {
+  font-size: clamp(3.6rem, 19vw, 6rem); font-weight: 870; font-stretch: 112%; letter-spacing: -.045em; line-height: .9; color: #fff; text-shadow: 0 6px 24px rgba(16, 52, 120, .35);
+  animation: splash-rise .7s .1s var(--ease-out) both;
+}
+.splash-hand { margin-top: 10px; font-family: "Gochi Hand", "Segoe Print", cursive; font-size: clamp(1.25rem, 5.4vw, 1.6rem); color: var(--table-soft); animation: splash-fade .6s .55s both; }
+.splash-stamp {
+  position: absolute; right: -10%; bottom: -100px; width: 76px; height: 76px; border-radius: 50%;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
+  border: 2px solid rgba(255, 255, 255, .78); box-shadow: inset 0 0 0 4px var(--table), inset 0 0 0 5px rgba(255, 255, 255, .5);
+  font-family: "DM Mono", ui-monospace, monospace; font-size: .62rem; letter-spacing: .14em; color: rgba(255, 255, 255, .86);
+  transform: rotate(-12deg); animation: splash-stamp .42s 1.1s cubic-bezier(.2, 1.4, .4, 1) both;
+}
+.splash-stamp span:first-child { font-size: .78rem; font-weight: 500; }
+.splash.still :is(.splash-dot, .splash-plane, .splash-word, .splash-hand, .splash-stamp) { animation: none; opacity: 1; }
+@keyframes splash-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes splash-rise { from { opacity: 0; transform: translateY(14px); } }
+@keyframes splash-stamp { from { opacity: 0; transform: rotate(-4deg) scale(1.7); } }
+
+/*
+ * While a daylight screen in the sky is up, the body's sky (base.css) stays in daytime even if the app is at night.
+ * Not for the splash, which has its own sky and fades out over the app.
+ */
+:root:root:has(.daylight:is(.welcome, .onb, .terms-page)) {
+  --sky-top: #5f9bd6; --sky-mid: #a8cbec; --sky-low: #dbe9f6; --sky-end: #eaf2f9;
+  --ridges: var(--ridges-day); --haze: var(--haze-day); --mist: rgba(236, 243, 250, .78); --stars: none; --bg: #eef6ff; color-scheme: light;
+}
+
+/* ---------- Welcome: the book in the sky among what a trip leaves behind, over a faint route map ---------- */
+.daylight.welcome {
+  --focus: #2563c4;
+  min-height: 100vh; min-height: 100dvh; display: flex; justify-content: center; overflow: clip;
+  color: var(--ink); background: none;
+}
+.welcome-in {
+  width: min(460px, 100%); display: flex; flex-direction: column;
+  padding: calc(10px + var(--safe-top)) 16px calc(18px + var(--safe-bottom));
+}
+.welcome-top { display: flex; align-items: center; justify-content: center; min-height: 48px; animation: splash-fade .5s both; }
+.welcome-word { font-size: 1.4rem; font-weight: 870; font-stretch: 112%; letter-spacing: -.04em; color: var(--ink); }
+
+/* The table: everything is placed on a sheet as wide as the screen, so the props sit off its edges like paper on a desk. */
+.welcome-desk { position: relative; flex: 1; min-height: min(400px, 48svh); margin-inline: -16px; }
+.welcome-desk > * { position: absolute; }
+.welcome-map { inset: 2% 0 0; width: 100%; height: 96%; overflow: visible; }
+.welcome-leg { fill: none; stroke: #2563c4; stroke-opacity: .4; stroke-width: 1.6; stroke-linecap: round; stroke-dasharray: .1 7; animation: splash-fade .9s both; }
+.welcome-port circle { fill: #fff; stroke: #2563c4; stroke-opacity: .55; stroke-width: 1.6; }
+.welcome-port text { font-family: var(--f-mono); font-size: 9px; letter-spacing: .14em; fill: #3a536f; }
+.welcome-port { animation: splash-fade .6s .35s both; }
+.welcome-book { left: 50%; top: 50%; z-index: 3; translate: -50% -50%; animation: welcome-drop .8s .1s var(--ease-out) both; }
+@keyframes welcome-drop { from { opacity: 0; transform: translateY(-26px) rotate(-3deg) scale(1.04); } }
+
+.welcome-stub { left: 6px; top: 7%; width: 150px; font-size: .9em; z-index: 2; transform: rotate(-11deg); animation: welcome-slide-l .8s .35s var(--ease-out) both; }
+.welcome-stub .stub-route b { font-size: 1.12rem; }
+.welcome-stub .stub-route svg { width: 18px; height: 18px; }
+.welcome-stub .stub-band { padding-inline: 12px; font-size: .58rem; letter-spacing: .16em; }
+.welcome-stub :is(.stub-route, .stub-facts) { padding-inline: 12px; gap: 6px 12px; }
+.welcome-stub .stub-facts dd { font-size: .76rem; }
+.welcome-stub .barcode { margin-inline: 12px; }
+.welcome-tag { right: -10px; top: 3%; width: 116px; z-index: 2; padding: 34px 14px 14px; transform: rotate(13deg); animation: welcome-slide-r .8s .45s var(--ease-out) both; }
+.welcome-tag .tag-string { top: -28px; width: 100px; }
+.welcome-tag .tag-line b { font-size: 1.12rem; }
+.welcome-postage { right: 9%; bottom: 7%; width: 60px; z-index: 4; transform: rotate(8deg); filter: drop-shadow(4px 8px 10px rgba(20, 32, 43, .22)); animation: welcome-slide-r .8s .6s var(--ease-out) both; }
+.welcome-tape { left: 50%; top: -9px; width: 54px; height: 15px; translate: -50% 0; rotate: -6deg; }
+.welcome-note {
+  left: 8%; bottom: 6%; z-index: 4; margin: 0; font-family: var(--f-hand); font-size: 1.45rem; line-height: 1; color: #1d2a55;
+  transform: rotate(-5deg); animation: splash-fade .6s 1.1s both;
+}
+@keyframes welcome-slide-l { from { opacity: 0; translate: -40px 10px; } }
+@keyframes welcome-slide-r { from { opacity: 0; translate: 40px 10px; } }
+
+.welcome-copy { text-align: center; animation: rise .6s .25s var(--ease-out) both; }
+.welcome-copy h1 {
+  margin: 0; color: var(--ink); font-size: clamp(2.1rem, 10.4vw, 3rem); font-weight: 870; font-stretch: 112%; text-transform: uppercase;
+  letter-spacing: -.035em; line-height: .92; text-wrap: balance;
+}
+.welcome-copy p { margin: 12px auto 0; max-width: 33ch; color: var(--ink-soft); font-size: 1.04rem; line-height: 1.5; }
+.welcome-actions { display: flex; flex-direction: column; gap: 10px; margin-top: clamp(18px, 3.4svh, 30px); animation: rise .6s .35s var(--ease-out) both; }
+.welcome-actions .btn { width: 100%; min-height: 56px; font-size: 1.05rem; font-weight: 750; }
+.welcome-fine { margin: 2px 0 0; text-align: center; font-size: .86rem; color: var(--ink-faint); }
+
+@media (max-height: 700px) {
+  .welcome-top { min-height: 36px; }
+  .welcome-desk { min-height: 236px; }
+  .welcome-book { scale: .8; }
+  .welcome-stub, .welcome-tag { scale: .86; }
+  .welcome-note { display: none; }
+  .welcome-copy h1 { font-size: clamp(1.8rem, 8.6vw, 2.3rem); }
+  .welcome-copy p { margin-top: 8px; font-size: .96rem; }
+  .welcome-actions { margin-top: 14px; gap: 8px; }
+  .welcome-actions .btn { min-height: 50px; }
+  .welcome-fine { display: none; }
+}
+
+/* ---------- The questions, the account and logging in, in the pale sky ---------- */
+.daylight.onb {
+  --focus: #2563c4;
+  color: var(--ink); background: none;
+  min-height: 100vh; min-height: 100dvh; display: grid; grid-template-columns: minmax(0, 1fr); overflow-x: clip;
+}
+.onb-frame {
+  width: min(540px, 100%); margin-inline: auto; min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column;
+  padding: calc(8px + var(--safe-top)) 16px 0;
+}
+.onb-top { display: grid; grid-template-columns: 44px minmax(0, 1fr) 56px; align-items: center; gap: 12px; min-height: 56px; }
+.onb-count { justify-self: end; font-family: var(--f-mono); font-size: .8rem; font-weight: 500; letter-spacing: .08em; color: var(--ink); }
+.onb-count i { font-style: normal; color: var(--ink-faint); }
+.onb-back {
+  width: 44px; height: 44px; margin-left: -8px; border: 0; border-radius: 999px; background: none; color: var(--ink);
+  display: grid; place-items: center; transition: background-color .15s;
+}
+.onb-back svg { width: 22px; height: 22px; }
+.onb-back:hover { background: rgba(255, 255, 255, .5); }
+.onb-back:active { background: rgba(255, 255, 255, .75); }
+.onb-skip { align-self: center; min-height: 40px; padding: 0 14px; border: 0; border-radius: 999px; background: none; color: var(--ink-soft); font: inherit; font-weight: 700; font-size: .95rem; }
+.onb-skip:hover { color: var(--ink); background: rgba(255, 255, 255, .5); }
+.onb-top .onb-skip { justify-self: end; padding: 0 2px; }
+.onb-word { justify-self: center; font-size: 1.3rem; font-weight: 870; font-stretch: 112%; letter-spacing: -.04em; color: var(--ink); text-decoration: none; }
+
+/* The progress: one leg per question. Flown legs are inked, the rest dotted, and the plane is on the current one. */
+.onb-stops { display: flex; align-items: center; gap: 5px; height: 24px; }
+.onb-leg {
+  position: relative; flex: 1; height: 4px; border-radius: 4px;
+  background: radial-gradient(circle, rgba(19, 40, 63, .3) 1.2px, transparent 1.5px) 0 50% / 6px 4px repeat-x;
+}
+.onb-leg.done { background: var(--ink); }
+.onb-leg.here { background: linear-gradient(var(--ink), var(--ink)) 0 0 / 0 100% no-repeat, radial-gradient(circle, rgba(20, 32, 43, .28) 1.2px, transparent 1.5px) 0 50% / 6px 4px repeat-x; animation: onb-leg .6s .1s var(--ease-out) forwards; }
+@keyframes onb-leg { to { background-size: 55% 100%, 6px 4px; } }
+.onb-plane {
+  position: absolute; top: 50%; left: 0; width: 18px; height: 18px; color: var(--ink); fill: #fff; stroke-width: 1.8;
+  transform: translate(-30%, -56%) rotate(45deg); animation: onb-fly .6s .1s var(--ease-out) forwards;
+}
+@keyframes onb-fly { to { left: 55%; } }
+
+.onb-step { flex: 1; display: flex; flex-direction: column; }
+.onb-body { flex: 1; display: flex; flex-direction: column; gap: 14px; padding: clamp(16px, 4.5svh, 44px) 0 24px; }
+.onb-body[data-dir="next"] { animation: onb-next .42s var(--ease-out) both; }
+.onb-body[data-dir="back"] { animation: onb-back .42s var(--ease-out) both; }
+@keyframes onb-next { from { opacity: 0; transform: translateX(28px); } }
+@keyframes onb-back { from { opacity: 0; transform: translateX(-28px); } }
+.onb h1 {
+  margin: 0; font-size: clamp(2rem, 8.6vw, 2.85rem); font-weight: 870; font-stretch: 112%; text-transform: uppercase;
+  letter-spacing: -.035em; line-height: .93; text-wrap: balance; color: var(--ink);
+}
+.onb h1:focus { outline: none; }
+.onb .sub { margin: 0 0 6px; max-width: 42ch; color: var(--ink-soft); font-size: 1.05rem; line-height: 1.5; }
+
+/*
+ * Answers are tickets: a stub on its own paper stock holding the icon, a dashed perforation, then the
+ * words. A picked ticket takes an ink edge, lifts off the table and gets a blue tick stamped on.
+ */
+.onb-opts { display: grid; gap: 10px; }
+.onb-opts.grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.onb-opt {
+  --stock: #dff0e2; --edge: rgba(32, 82, 145, .14); --stub: 68px;
+  position: relative; overflow: hidden; display: grid; grid-template-columns: var(--stub) minmax(0, 1fr) 46px; align-items: stretch;
+  min-height: 74px; padding: 0; text-align: left; font: inherit; color: var(--ink);
+  background: #fff; border: 1.5px solid var(--edge); border-radius: 18px; box-shadow: 0 1px 2px rgba(45, 95, 160, .08), 0 10px 22px -16px rgba(45, 95, 160, .4);
+  transition: border-color .18s, box-shadow .3s var(--ease-out), transform .3s var(--ease-out), background-color .18s;
+}
+.onb-opt:hover { --edge: rgba(32, 82, 145, .34); }
+.onb-opt:active { transform: scale(.985); }
+.onb-opt[aria-pressed="true"] { --edge: var(--ink); background: #fff; box-shadow: var(--lift); transform: translateY(-2px); }
+.onb-opt[aria-pressed="true"]:active { transform: translateY(-2px) scale(.985); }
+.onb-opt-icon {
+  display: grid; place-items: center; background-color: var(--stock); background-image: var(--grain);
+  border-right: 2px dashed rgba(32, 82, 145, .18); transition: background-color .18s;
+}
+.onb-opt-icon svg { width: 26px; height: 26px; stroke-width: 1.7; transition: transform .35s var(--ease-out); }
+.onb-opt[aria-pressed="true"] .onb-opt-icon svg { transform: scale(1.1) rotate(-6deg); }
+.onb-opt-text { display: flex; flex-direction: column; justify-content: center; gap: 3px; min-width: 0; padding: 14px 0 14px 16px; }
+.onb-opt-label { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; font-weight: 750; font-size: 1.04rem; line-height: 1.25; }
+.onb-opt-hint { color: var(--ink-faint); font-size: .92rem; line-height: 1.35; }
+.onb-opt > .onb-tick { align-self: center; justify-self: center; }
+.onb-tag {
+  font-family: "DM Mono", ui-monospace, monospace; font-size: .6rem; font-weight: 500; letter-spacing: .14em; text-transform: uppercase;
+  padding: 3px 7px; border-radius: 999px; background: #e2f2e5; color: #1f5a35;
+}
+.onb-tick {
+  width: 24px; height: 24px; flex: none; border-radius: 999px; border: 1.5px solid rgba(20, 32, 43, .24); color: transparent;
+  display: grid; place-items: center; transition: background-color .18s, border-color .18s, color .18s, transform .25s var(--ease-out);
+}
+.onb-tick.box { border-radius: 6px; }
+.onb-tick svg { width: 15px; height: 15px; stroke-width: 2.8; }
+.onb-opt[aria-pressed="true"] .onb-tick { background: var(--ink-blue); border-color: var(--ink-blue); color: #fff; animation: onb-stamp .32s cubic-bezier(.2, 1.5, .4, 1); }
+@keyframes onb-stamp { from { transform: scale(1.6) rotate(-12deg); opacity: .4; } }
+
+/* In two columns the ticket stands up: the stub across the top, the perforation under it, the words below. */
+.onb-opts.grid .onb-opt { --stub: 64px; grid-template-columns: minmax(0, 1fr); grid-template-rows: var(--stub) auto; min-height: 0; }
+.onb-opts.grid .onb-opt-icon { border-right: 0; border-bottom: 2px dashed rgba(32, 82, 145, .18); }
+.onb-opts.grid .onb-opt-text { padding: 12px 14px 14px; min-height: 64px; justify-content: flex-start; }
+.onb-opts.grid .onb-opt-label { font-size: .98rem; }
+.onb-opts.grid .onb-opt > .onb-tick { position: absolute; top: 10px; right: 10px; background-color: rgba(255, 255, 255, .7); }
+.onb-opts.grid .onb-opt[aria-pressed="true"] > .onb-tick { background-color: var(--ink-blue); }
+
+/* Typing: big quiet fields on paper. */
+.onb-fld { display: flex; flex-direction: column; gap: 7px; }
+.onb-fld > label { font-size: .88rem; font-weight: 700; color: var(--ink-soft); }
+.onb-more { margin-top: 4px; animation: rise .35s var(--ease-out) both; scroll-margin-bottom: 160px; }
+.onb-input {
+  width: 100%; min-height: 62px; padding: 14px 18px; border-radius: 18px; font: inherit; font-size: 1.4rem; font-weight: 650; color: var(--ink);
+  background: #fff; border: 1.5px solid rgba(32, 82, 145, .18); box-shadow: 0 10px 22px -16px rgba(45, 95, 160, .4); transition: border-color .15s, box-shadow .15s;
+  scroll-margin: 90px 0 140px; /* clear of the Continue button when it scrolls into view */
+}
+.onb-input.small { min-height: 54px; font-size: 1.08rem; font-weight: 500; }
+.onb-input::placeholder { color: #8a949c; font-weight: 500; }
+.onb-input:focus { outline: none; border-color: var(--ink-blue); box-shadow: 0 0 0 4px rgba(37, 99, 196, .18); }
+.onb-hint { font-size: .86rem; color: var(--ink-faint); }
+
+/*
+ * The account, laid out like the log-in but on passport green instead of airmail blue, so the two are told apart at a
+ * glance: the heading in white on a dotted green band, and one white card over its edge with everything to fill in.
+ * On a phone the band is the heading's own background, pulled up behind the progress bar, so it grows with the
+ * heading however it wraps. On wide screens the band fills the left half, as the log-in's does.
+ */
+.onb-signup {
+  --pass: var(--table); --pass-hi: var(--table-hi); --pass-lo: var(--table-lo); --pass-soft: var(--table-soft);
+}
+.onb-signup .onb-top { position: relative; z-index: 2; --focus: var(--sun); }
+.onb-signup .onb-back { color: #fff; }
+.onb-signup .onb-back:hover { background: rgba(255, 255, 255, .12); }
+.onb-signup .onb-back:active { background: rgba(255, 255, 255, .2); }
+.onb-signup .onb-count { color: #fff; }
+.onb-signup .onb-count i { color: rgba(255, 255, 255, .6); }
+.onb-signup .onb-leg { background: radial-gradient(circle, rgba(255, 255, 255, .45) 1.2px, transparent 1.5px) 0 50% / 6px 4px repeat-x; }
+.onb-signup .onb-leg.done { background: #fff; }
+.onb-signup .onb-leg.here { background: linear-gradient(#fff, #fff) 0 0 / 0 100% no-repeat, radial-gradient(circle, rgba(255, 255, 255, .45) 1.2px, transparent 1.5px) 0 50% / 6px 4px repeat-x; }
+.onb-signup .onb-plane { color: #fff; fill: var(--pass); }
+/* The band and card fade in rather than slide, so the blue doesn't swing across under the progress bar. */
+.onb-signup .onb-body { padding-top: 0; animation-name: splash-fade; }
+
+.su-hero {
+  margin: calc(-64px - var(--safe-top)) -16px 0; padding: calc(64px + var(--safe-top) + clamp(10px, 3svh, 26px)) 16px 64px;
+  text-align: center; background: var(--band); background-color: var(--table);
+  border-radius: 0 0 34px 34px;
+}
+.onb .su-hero h1 { color: #fff; font-size: clamp(2rem, 8.6vw, 2.5rem); }
+.onb .su-hero h1:focus-visible { outline: 2px solid var(--sun); outline-offset: 4px; }
+.onb .su-hero .sub { margin: 10px auto 0; max-width: 32ch; color: var(--pass-soft); }
+.su-card {
+  position: relative; display: flex; flex-direction: column; gap: 14px; margin-top: -60px; padding: 22px 18px 18px;
+  border-radius: 24px; background: #fff; box-shadow: var(--lift-lg);
+  animation: rise .6s .1s var(--ease-out) both;
+}
+@media (max-height: 700px) { .su-hero { padding-bottom: 56px; } .su-card { margin-top: -50px; padding: 18px 16px 16px; } }
+
+/* The form beside the book on wide screens. The one-column screens (the inbox, the confirmation) keep the phone's band. */
+@media (min-width: 980px) {
+  .daylight.onb.onb-signup:not(.solo) { position: relative; isolation: isolate; }
+  .onb-signup:not(.solo)::before { content: ""; position: absolute; z-index: -1; inset: 0 50% 0 0; background: var(--band); background-color: var(--table); }
+  .onb-signup:not(.solo) .onb-aside { border-left: 0; }
+  .onb-signup:not(.solo) .onb-body { padding-top: clamp(20px, 5svh, 56px); }
+  .onb-signup:not(.solo) .su-hero { margin: 0; padding: 0 0 6px; background: none; border-radius: 0; }
+  .onb-signup:not(.solo) .su-card { margin-top: 6px; }
+  .onb-signup:not(.solo) .onb-foot { background: none; }
+  .onb-signup:not(.solo) .onb-switch { color: var(--pass-soft); }
+  .onb-signup:not(.solo) .onb-switch a { color: #fff; }
+  .onb-signup.solo .onb-body { padding-top: 0; }
+}
+
+/* Waiting for the email: an envelope, the address it went to, and a quiet pulse while the screen checks. */
+.onb-signup .onb-word { color: #fff; }
+.su-inbox { align-items: center; text-align: center; gap: 10px; padding: 26px 20px 22px; }
+.su-envelope {
+  width: 64px; height: 64px; margin-top: -58px; border-radius: 50%; display: grid; place-items: center;
+  background: var(--sun); color: var(--ink); box-shadow: 0 0 0 6px #fff, 0 10px 20px -8px rgba(30, 70, 140, .4);
+  animation: su-bob 2.6s ease-in-out infinite;
+}
+.su-envelope svg { width: 30px; height: 30px; stroke-width: 1.8; }
+.su-envelope.ok { background: #2f8a4c; color: #fff; animation: onb-stamp .4s cubic-bezier(.2, 1.5, .4, 1); }
+@keyframes su-bob { 50% { transform: translateY(-4px) rotate(-4deg); } }
+.su-inbox-to { margin: 6px 0 0; display: flex; flex-direction: column; gap: 2px; font-size: .95rem; color: var(--ink-soft); }
+.su-inbox-to b { font-size: 1.12rem; font-weight: 800; color: var(--ink); overflow-wrap: anywhere; }
+.su-inbox-how { margin: 0; max-width: 34ch; font-size: .92rem; line-height: 1.5; color: var(--ink-soft); }
+.su-waiting { margin: 6px 0 0; display: inline-flex; align-items: center; gap: 8px; padding: 7px 14px; border-radius: 999px; background: #eef6f1; color: #1f5a3d; font-size: .86rem; font-weight: 700; }
+.su-pulse { width: 8px; height: 8px; border-radius: 50%; background: #2f8a4c; animation: su-pulse 1.4s ease-in-out infinite; }
+@keyframes su-pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: .35; transform: scale(.7); } }
+.su-note { margin: 0; font-size: .88rem; color: var(--ink-soft); }
+.su-inbox .onb-err { width: 100%; }
+.su-linkish { padding: 0; border: 0; background: none; font: inherit; font-weight: 750; color: var(--ink-blue); text-decoration: underline; text-underline-offset: 2px; }
+.onb-skip:disabled { color: var(--ink-faint); background: none; cursor: default; }
+@media (prefers-reduced-motion: reduce) { .su-envelope, .su-pulse { animation: none; } }
+
+/*
+ * Inside the card: two quiet groups of plain grey boxes (about you, signing in), then the terms to agree to. No icons
+ * in the boxes; a green tick shows when a box is right, and what's wrong is said in red under it.
+ */
+.su-group { margin: 0; padding: 0; border: 0; min-width: 0; display: flex; flex-direction: column; gap: 14px; }
+.su-group + .su-group { margin-top: 6px; padding-top: 18px; border-top: 1px solid rgba(20, 32, 43, .08); }
+.su-group > legend {
+  float: left; width: 100%; margin: 0 0 2px; padding: 0;
+  font-family: var(--f-mono); font-size: .68rem; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; color: var(--ink-faint);
+}
+.su-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; }
+.su-row.age { grid-template-columns: 88px minmax(0, 1fr); }
+.su-fld { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.su-fld > label { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; font-size: .86rem; font-weight: 700; color: var(--ink); }
+.su-optional { font-size: .78rem; font-weight: 500; color: var(--ink-faint); }
+.su-box {
+  display: flex; align-items: center; min-height: 50px; border-radius: 12px;
+  background: #eff5fc; border: 1.5px solid transparent; transition: border-color .15s, background-color .15s, box-shadow .15s;
+}
+.su-box:hover { border-color: rgba(32, 82, 145, .14); }
+.su-box:focus-within { background: #fff; border-color: var(--ink-blue); box-shadow: 0 0 0 4px rgba(34, 87, 184, .12); }
+.su-box.off { background: #fff; border-color: #c4483d; }
+.su-box.off:focus-within { box-shadow: 0 0 0 4px rgba(196, 72, 61, .12); }
+.su-box input {
+  flex: 1; min-width: 0; height: 47px; padding: 0 14px; border: 0; border-radius: 12px; background: transparent;
+  font: inherit; font-size: 1.02rem; font-weight: 550; color: var(--ink); scroll-margin: 90px 0 150px;
+}
+.su-box input:focus { outline: none; }
+.su-box input::placeholder { color: #a0a8ae; font-weight: 450; }
+.su-ok { flex: none; width: 18px; height: 18px; margin-right: 14px; color: #2f8a4c; stroke-width: 2.8; animation: onb-stamp .3s cubic-bezier(.2, 1.5, .4, 1); }
+.su-ok + .su-show { margin-left: -6px; }
+.su-show { flex: none; align-self: stretch; padding: 0 14px; border: 0; border-radius: 0 12px 12px 0; background: none; font: inherit; font-weight: 700; font-size: .88rem; color: var(--ink-blue); }
+.su-err { font-size: .84rem; font-weight: 600; color: #b23a30; }
+.su-meter { display: flex; align-items: center; gap: 10px; font-size: .82rem; color: var(--ink-faint); }
+.su-notches { display: flex; gap: 3px; }
+.su-notches i { width: 12px; height: 3px; border-radius: 3px; background: rgba(20, 32, 43, .13); transition: background-color .2s; }
+.su-notches i.on { background: var(--ink); }
+.su-meter.ok { color: #2f8a4c; font-weight: 700; }
+.su-meter.ok i { background: #2f8a4c; }
+
+/* Agreeing: a real checkbox under a drawn one, and the terms one tap away. */
+.su-agree { position: relative; margin-top: 6px; padding: 14px; border-radius: 14px; background: #eff5fc; }
+.su-agree > input { position: absolute; opacity: 0; width: 24px; height: 24px; margin: 0; top: 14px; left: 14px; }
+.su-agree > label { display: flex; gap: 12px; align-items: flex-start; font-size: .95rem; font-weight: 650; line-height: 1.4; color: var(--ink); cursor: pointer; }
+.su-box-tick {
+  flex: none; width: 24px; height: 24px; margin-top: -1px; border-radius: 7px; border: 1.5px solid rgba(20, 32, 43, .3); background: #fff; color: transparent;
+  display: grid; place-items: center; transition: background-color .15s, border-color .15s, color .15s;
+}
+.su-box-tick svg { width: 15px; height: 15px; stroke-width: 3; }
+.su-agree > input:checked + label .su-box-tick { background: var(--ink-blue); border-color: var(--ink-blue); color: #fff; animation: onb-stamp .3s cubic-bezier(.2, 1.5, .4, 1); }
+.su-agree > input:focus-visible + label .su-box-tick { outline: 2px solid var(--focus); outline-offset: 2px; }
+.su-read { margin: 6px 0 0 36px; font-size: .86rem; color: var(--ink-soft); line-height: 1.5; }
+.su-read button { padding: 0; border: 0; background: none; font: inherit; font-weight: 700; color: var(--ink-blue); text-decoration: underline; text-underline-offset: 2px; }
+
+@media (max-width: 360px) { .su-row:not(.age) { grid-template-columns: minmax(0, 1fr); } }
+
+/* The terms, over the form as a sheet, or on a page of their own. */
+.terms-sheet {
+  position: relative; width: min(620px, 100%); margin: 0 auto; border-radius: 22px; background: #fff; color: var(--ink);
+  box-shadow: 0 30px 60px -24px rgba(9, 22, 58, .45); animation: rise .35s var(--ease-out) both;
+}
+.terms-sheet .terms { padding: 28px 22px 8px; }
+.terms-foot { position: sticky; bottom: 0; padding: 14px 22px 18px; border-radius: 0 0 22px 22px; background: linear-gradient(to bottom, rgba(255, 255, 255, 0), #fff 18px); }
+.terms-foot .btn { width: 100%; min-height: 54px; font-size: 1.04rem; font-weight: 750; }
+.terms { line-height: 1.6; font-size: .97rem; color: var(--ink-soft); }
+.terms-kicker { margin: 0 0 6px; font-family: var(--f-mono); font-size: .7rem; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-faint); }
+.terms h1 { margin: 0 0 12px; font-size: clamp(1.7rem, 7vw, 2.2rem); font-weight: 870; font-stretch: 112%; text-transform: uppercase; letter-spacing: -.03em; line-height: .95; color: var(--ink); }
+.terms h2 { margin: 26px 0 8px; font-size: 1.05rem; font-weight: 800; color: var(--ink); scroll-margin-top: 20px; }
+.terms-lead { color: var(--ink); }
+.terms ul { margin: 0; padding-left: 1.1em; display: flex; flex-direction: column; gap: 6px; }
+.terms p { margin: 0 0 8px; }
+.terms b { color: var(--ink); }
+.terms a { color: var(--ink-blue); font-weight: 700; }
+.daylight.terms-page { min-height: 100vh; min-height: 100dvh; background: none; color: var(--ink); padding: calc(12px + var(--safe-top)) 16px calc(40px + var(--safe-bottom)); }
+.terms-top { display: flex; justify-content: center; min-height: 48px; align-items: center; }
+.terms-page main { width: min(680px, 100%); margin: 16px auto 0; }
+.onb-err { margin: 0; padding: 10px 14px; border-radius: 14px; background: #fbe9e7; color: #8f2a22; font-weight: 600; font-size: .95rem; }
+.onb-err a { color: inherit; font-weight: 800; }
+
+/* The way on stays under the thumb. */
+.onb-foot {
+  position: sticky; bottom: 0; z-index: 2; display: flex; flex-direction: column; gap: 12px;
+  margin-inline: -16px; padding: 14px 16px calc(16px + var(--safe-bottom));
+  background: none;
+}
+.onb-foot { gap: 6px; }
+.onb-foot .btn { width: 100%; min-height: 56px; font-size: 1.06rem; font-weight: 750; }
+.onb-foot .btn svg { width: 20px; height: 20px; stroke-width: 2.2; transition: transform .25s var(--ease-out); }
+.onb-foot .btn:not(:disabled):hover svg { transform: translateX(3px); }
+.onb-foot .btn:disabled { --b-bg: #dce8f5; --b-fg: #5f7690; opacity: 1; box-shadow: none; }
+.onb-foot .onb-switch { margin-top: 6px; }
+.onb-switch { margin: 0; text-align: center; font-size: .95rem; color: var(--ink-soft); }
+.onb-switch a { font-weight: 750; color: var(--ink-blue); }
+
+/* ---------- Logging in: one card on the edge of the sky ---------- */
+
+/*
+ * The backdrop: the splash's deep sky with soft clouds, across the top of the screen. The heading sits on it in white
+ * and the card lies over its edge onto the pale sky. On wide screens the band fills the left half.
+ */
+.daylight.onb.onb-login { position: relative; isolation: isolate; }
+.onb-login::before {
+  content: ""; position: absolute; z-index: -1; inset: 0 0 auto; height: calc(var(--safe-top) + 268px);
+  background: var(--band); background-color: var(--table);
+  border-radius: 0 0 34px 34px;
+}
+.onb-login :is(.onb-top, .login > h1, .login > .sub) { --focus: #ffd23f; }
+.onb-login .onb-back { color: #fff; }
+.onb-login .onb-back:hover { background: rgba(255, 255, 255, .12); }
+.onb-login .onb-word { color: #fff; }
+.onb-login .login > h1 { color: #fff; }
+.onb-login .login > .sub { color: var(--table-soft); }
+/* Centred: the heading and its line sit over the middle of the card. */
+.onb-login .login > :is(h1, .sub) { text-align: center; }
+.onb-login .login > h1 { font-size: clamp(2rem, 8.6vw, 2.5rem); }
+.onb-login .login > .sub { max-width: 32ch; margin-inline: auto; }
+@media (min-width: 980px) {
+  .onb-login::before { inset: 0 50% 0 0; height: auto; border-radius: 0; }
+  .onb-login .onb-aside { border-left: 0; }
+  /* On wide screens the log-in stands in the middle of the blue half, across and down. */
+  .daylight.onb.onb-login .onb-frame { margin-inline: auto; width: min(460px, 100% - 48px); }
+  .onb-login .login { justify-content: center; padding-top: 0; }
+  .onb-login .login .onb-switch { margin-top: 8px; }
+  .onb-login .login .onb-switch { color: var(--table-soft); }
+  .onb-login .login .onb-switch a { color: #fff; }
+}
+@media (max-height: 700px) { .onb-login::before { height: calc(var(--safe-top) + 228px); } }
+.login { flex: 1; display: flex; flex-direction: column; gap: 12px; padding: clamp(14px, 4svh, 40px) 0 calc(18px + var(--safe-bottom)); animation: rise .5s var(--ease-out) both; }
+.login .sub { margin-bottom: 10px; }
+
+/* One white cloud of a card over the edge of the band: the two fields and the button, nothing else. */
+.login-card {
+  display: flex; flex-direction: column; gap: 18px; padding: 24px 20px 20px; border-radius: 24px; background: #fff;
+  box-shadow: var(--lift-lg);
+  animation: rise .6s .1s var(--ease-out) both;
+}
+.login-fld { display: flex; flex-direction: column; gap: 8px; }
+.login-fld > label { font-size: .9rem; font-weight: 700; color: var(--ink); }
+.login-box {
+  position: relative; display: flex; align-items: center; min-height: 56px; border-radius: 14px;
+  background: #eff5fc; border: 1.5px solid transparent; transition: border-color .15s, background-color .15s, box-shadow .15s;
+}
+.login-box:hover { border-color: rgba(32, 82, 145, .14); }
+.login-box:focus-within { background: #fff; border-color: var(--ink-blue); box-shadow: 0 0 0 4px rgba(37, 99, 196, .14); }
+.login-icon { position: absolute; left: 16px; width: 20px; height: 20px; color: #7d90a8; pointer-events: none; transition: color .15s; }
+.login-box:focus-within .login-icon { color: var(--ink-blue); }
+.login-box input {
+  flex: 1; min-width: 0; height: 53px; padding: 0 16px 0 48px; border: 0; border-radius: 14px; background: transparent;
+  font: inherit; font-size: 1.06rem; font-weight: 550; color: var(--ink); scroll-margin: 90px 0 140px;
+}
+.login-box input:focus { outline: none; }
+.login-box input::placeholder { color: #9aa3aa; font-weight: 450; }
+.login-show { flex: none; align-self: stretch; padding: 0 16px; border: 0; background: none; font: inherit; font-weight: 700; font-size: .9rem; color: var(--ink-blue); border-radius: 0 14px 14px 0; }
+.login-card .onb-err { margin-top: -4px; }
+.login-go { width: 100%; min-height: 56px; margin-top: 4px; font-size: 1.06rem; font-weight: 750; }
+.login-go svg { width: 20px; height: 20px; stroke-width: 2.2; transition: transform .25s var(--ease-out); }
+.login-go:not(:disabled):hover svg { transform: translateX(3px); }
+.login .onb-switch { margin-top: auto; padding-top: 18px; }
+
+@media (max-height: 700px) {
+  .login { gap: 8px; padding-top: 8px; }
+  .login-card { gap: 14px; padding: 20px 18px 18px; }
+}
+
+/* Wide screens: the book being made stands on the right, on the same white page. */
+.onb-aside { display: none; }
+@media (min-width: 980px) {
+  .daylight.onb:not(.solo) { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .onb:not(.solo) .onb-frame { margin-inline: auto clamp(24px, 5vw, 80px); }
+  .onb-aside {
+    position: sticky; top: 0; height: 100vh; height: 100dvh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 26px;
+    border-left: 1px solid rgba(20, 32, 43, .1);
+  }
+  .onb-aside-note { margin: 0; font-family: "Gochi Hand", "Segoe Print", cursive; font-size: 1.6rem; color: #1d2a55; transform: rotate(-2deg); }
+  .onb-body { padding-top: clamp(40px, 9svh, 96px); }
+}
+
+/* Making the book, then handing it over. */
+.onb-making, .onb-ready { flex: 1; display: flex; flex-direction: column; align-items: center; text-align: center; justify-content: center; gap: 18px; padding: 24px 0; }
+.onb-making-book { animation: onb-breathe 2.4s ease-in-out infinite; }
+@keyframes onb-breathe { 50% { transform: translateY(-6px) rotate(-1deg); } }
+.onb-list { list-style: none; margin: 4px 0 0; padding: 0; display: flex; flex-direction: column; gap: 12px; text-align: left; width: min(340px, 100%); }
+.onb-list li { display: flex; align-items: center; gap: 12px; font-weight: 650; color: var(--ink-soft); animation: splash-fade .4s calc(var(--n) * .6s + .15s) both; }
+.onb-list .onb-tick { animation: onb-tick .3s calc(var(--n) * .6s + .45s) both; }
+@keyframes onb-tick { to { background: var(--ink-blue); border-color: var(--ink-blue); color: #fff; } }
+.onb-ready { justify-content: flex-start; padding-top: clamp(20px, 6svh, 70px); }
+.onb-ready-book { padding: 8px 0 14px; animation: onb-arrive .7s var(--ease-out) both; }
+@keyframes onb-arrive { from { opacity: 0; transform: translateY(30px) scale(.92); } }
+.onb-ready .sub { margin-inline: auto; }
+.onb-ready h1 { animation: rise .5s .15s var(--ease-out) both; }
+.onb-ready .onb-foot { margin-top: auto; width: calc(100% + 32px); }
+
+@media (max-width: 380px) {
+  .onb-opts.grid { gap: 8px; }
+  .onb-opt { --stub: 58px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .onb-making-book { animation: none; }
+}

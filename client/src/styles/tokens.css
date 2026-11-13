@@ -1,29 +1,48 @@
 /*
- * NinRe's signed-in app wears the website's world without its photographs: a white page by day and deep ink by night,
- * heavy wide Archivo for titles, sun yellow for the one primary action, stamp red for pins, and paper with soft shadows.
- * Notes and stickers keep their pastel stocks.
+ * NinRe is set in the sky: clear blue overhead misting down to a range of far mountains, with soft haze drifting
+ * across, and at night the same range under stars. Everything on it is frosted glass with big round corners
+ * (glass.css), titles are plain sentence case, and sun yellow marks the primary action and the current tab. The home's
+ * bookcase is whitewashed and stands in the mist. Notes and stickers keep their pastel stocks.
  */
 :root {
-  /* App ground: the website's white page */
-  --bg: #ffffff;
-  --card: #fffdf8;
-  --card-2: #f5f3ee;
-  --line: rgba(20, 32, 43, .12);
-  --line-2: rgba(20, 32, 43, .22);
-  --ink: #14202b;
-  --ink-soft: #46535e;
-  --ink-faint: #5f6b75;
-  --rule: rgba(20, 32, 43, .14);
-  --veil: rgba(10, 18, 26, .55);
-  --shadow: rgba(20, 32, 43, .18);
-  --focus: #2257b8;
-  /* Daylight from the top left: paper casts its shadow down and to the right. */
-  --lift: 0 1px 1px rgba(20, 32, 43, .1), 6px 14px 26px -12px rgba(20, 32, 43, .34);
-  --lift-lg: 0 1px 2px rgba(20, 32, 43, .1), 14px 30px 52px -24px rgba(20, 32, 43, .38);
+  /* The sky: clear blue overhead, misting toward a range of far mountains at the foot of the screen */
+  --sky-top: #5f9bd6; --sky-mid: #a8cbec; --sky-low: #dbe9f6; --sky-end: #eaf2f9;
+  --sky: linear-gradient(180deg, var(--sky-top) 0%, var(--sky-mid) 30%, var(--sky-low) 58%, var(--sky-end) 100%);
+  --stars: none;
+  --ridges-day: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320' preserveAspectRatio='xMidYMax slice'%3E%3ClinearGradient id='f' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%239dbbd9'/%3E%3Cstop offset='1' stop-color='%23cddff0'/%3E%3C/linearGradient%3E%3ClinearGradient id='n' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%237fa3c8'/%3E%3Cstop offset='1' stop-color='%23bcd2e8'/%3E%3C/linearGradient%3E%3Cpath fill='url(%23f)' d='M0 214 L96 168 L170 186 L268 120 L330 146 L420 92 L476 112 L560 64 L640 118 L716 96 L800 146 L884 104 L962 132 L1050 78 L1120 108 L1210 70 L1300 128 L1376 112 L1440 136 V320 H0 Z'/%3E%3Cpath fill='%23f4f8fc' d='M536 80 L560 64 L586 82 L572 78 L560 88 L548 78 Z M1028 92 L1050 78 L1072 92 L1060 90 L1050 98 L1040 90 Z M1192 82 L1210 70 L1230 84 L1218 82 L1210 90 L1202 82 Z'/%3E%3Cpath fill='url(%23n)' d='M0 266 L112 214 L208 246 L330 182 L430 236 L534 198 L640 250 L760 196 L872 244 L990 204 L1100 252 L1214 190 L1330 236 L1440 214 V320 H0 Z'/%3E%3C/svg%3E");
+  --ridges-night: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320' preserveAspectRatio='xMidYMax slice'%3E%3ClinearGradient id='f' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%231a2d55'/%3E%3Cstop offset='1' stop-color='%2314254a'/%3E%3C/linearGradient%3E%3ClinearGradient id='n' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%230f1c3b'/%3E%3Cstop offset='1' stop-color='%230c1832'/%3E%3C/linearGradient%3E%3Cpath fill='url(%23f)' d='M0 214 L96 168 L170 186 L268 120 L330 146 L420 92 L476 112 L560 64 L640 118 L716 96 L800 146 L884 104 L962 132 L1050 78 L1120 108 L1210 70 L1300 128 L1376 112 L1440 136 V320 H0 Z'/%3E%3Cpath fill='%232a3f6c' d='M536 80 L560 64 L586 82 L572 78 L560 88 L548 78 Z M1028 92 L1050 78 L1072 92 L1060 90 L1050 98 L1040 90 Z M1192 82 L1210 70 L1230 84 L1218 82 L1210 90 L1202 82 Z'/%3E%3Cpath fill='url(%23n)' d='M0 266 L112 214 L208 246 L330 182 L430 236 L534 198 L640 250 L760 196 L872 244 L990 204 L1100 252 L1214 190 L1330 236 L1440 214 V320 H0 Z'/%3E%3C/svg%3E");
+  --ridges: var(--ridges-day);
+  --mist: rgba(236, 243, 250, .78);
+  /* Soft drifts of haze: no outlines, just light */
+  --haze-day: radial-gradient(42% 16% at 18% 20%, rgba(255, 255, 255, .62), transparent 70%), radial-gradient(34% 12% at 80% 12%, rgba(255, 255, 255, .5), transparent 70%), radial-gradient(56% 18% at 62% 44%, rgba(255, 255, 255, .42), transparent 72%), radial-gradient(40% 14% at 8% 60%, rgba(255, 255, 255, .36), transparent 70%);
+  --haze-night: radial-gradient(42% 16% at 18% 20%, rgba(120, 150, 210, .16), transparent 70%), radial-gradient(34% 12% at 80% 12%, rgba(120, 150, 210, .12), transparent 70%), radial-gradient(56% 18% at 62% 44%, rgba(120, 150, 210, .1), transparent 72%);
+  --haze: var(--haze-day);
+  /* Frosted glass: the surfaces of every screen */
+  --glass: rgba(255, 255, 255, .62); --glass-hi: rgba(255, 255, 255, .82); --glass-lo: rgba(255, 255, 255, .38);
+  --glass-edge: rgba(255, 255, 255, .78); --glass-blur: blur(22px) saturate(160%);
+  --glass-shadow: inset 0 1px 0 rgba(255, 255, 255, .7), 0 12px 32px -14px rgba(35, 80, 140, .34);
 
-  /* Inks and stocks shared with the website */
-  --azure: #2257b8;
-  --azure-ink: #1d4a9e;
+  /* App ground and solid surfaces (inputs, menus); cards and bars are glass */
+  --bg: #eef6ff;
+  --card: #ffffff;
+  --card-2: #eff6fe;
+  --line: rgba(32, 82, 145, .12);
+  --line-2: rgba(32, 82, 145, .22);
+  --ink: #13283f;
+  --ink-soft: #3a536f;
+  --ink-faint: #50698a;
+  --rule: rgba(32, 82, 145, .14);
+  --veil: rgba(12, 32, 62, .45);
+  --shadow: rgba(45, 95, 160, .2);
+  --focus: #2b74d6;
+  /* Light from above: shadows fall straight down, soft and blue. */
+  --lift: 0 1px 2px rgba(45, 95, 160, .1), 0 14px 30px -14px rgba(45, 95, 160, .42);
+  --lift-lg: 0 2px 4px rgba(45, 95, 160, .1), 0 30px 60px -26px rgba(45, 95, 160, .5);
+  --r-card: 28px; --r-sm: 18px; --r-field: 14px;
+
+  /* Inks and stocks */
+  --azure: #2b6fd0;
+  --azure-ink: #1f5bb5;
   --sun: #ffd23f;
   --mint: #2f7a4b;
   --stock-free: #e2f2e5; --stock-plus: #ffe066; --stock-crew: #ffd8de;
@@ -41,6 +60,10 @@
   --red: #b3352b; --red-soft: rgba(179, 53, 43, .11);
   --sea: #c8d5d1; --sea-2: #b4c6c1; --land: #ece5d1; --land-ink: #5b5a4c; --grat: rgba(58, 80, 86, .18);
   --polaroid: #fbfaf6; --polaroid-ink: #2d3236; --tape: rgba(226, 211, 165, .78);
+  /* The library's shelves: whitewashed wood, its top face, front and underside */
+  --shelf-top: #ffffff; --shelf-front: #e4eef9; --shelf-edge: #bfd2e8; --shelf-shade: rgba(45, 95, 160, .14);
+  /* The library: the sky behind it (one solid stand-in where a single colour is needed), the case's back panel, the mist it stands in */
+  --wall: var(--sky-low); --wall-2: rgba(45, 95, 160, .05); --case-back: #d7e8f9; --floor: #ffffff; --floor-2: #e2eefb;
 
   --f-ui: "Archivo Variable", Archivo, system-ui, -apple-system, "Segoe UI", sans-serif;
   --f-display: "Bodoni Moda Variable", "Bodoni Moda", Didot, Georgia, serif;
@@ -49,6 +72,9 @@
   --f-hand: "Gochi Hand", "Segoe Print", cursive;
   --f-cover: var(--f-display);
 
+  /* The phone's status bar and home bar. Inside the desktop phone frame (html.in-frame) the frame draws them instead. */
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
   --gutter-l: max(16px, env(safe-area-inset-left, 0px));
   --gutter-r: max(16px, env(safe-area-inset-right, 0px));
   --sheet: 1160px;
@@ -58,41 +84,55 @@
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #10161c;
-    --card: #19222b;
-    --card-2: #141b22;
-    --line: rgba(220, 232, 244, .12);
-    --line-2: rgba(220, 232, 244, .22);
-    --ink: #e8edf1;
-    --ink-soft: #aab6c0;
-    --ink-faint: #8794a0;
-    --rule: rgba(220, 232, 244, .13);
-    --veil: rgba(3, 6, 9, .72);
+    --sky-top: #050b1d; --sky-mid: #0a1631; --sky-low: #10214a; --sky-end: #132753;
+    --ridges: var(--ridges-night); --haze: var(--haze-night); --mist: rgba(12, 24, 52, .7);
+    --glass: rgba(24, 40, 78, .55); --glass-hi: rgba(30, 48, 92, .78); --glass-lo: rgba(24, 40, 78, .34);
+    --glass-edge: rgba(200, 222, 255, .14); --glass-shadow: inset 0 1px 0 rgba(255, 255, 255, .06), 0 12px 32px -14px rgba(0, 0, 0, .6);
+    --stars: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cg fill='%23fff'%3E%3Ccircle cx='22' cy='34' r='1.1' opacity='.9'/%3E%3Ccircle cx='132' cy='88' r='.9' opacity='.7'/%3E%3Ccircle cx='74' cy='150' r='1.3' fill='%23fff4d6' opacity='.85'/%3E%3Ccircle cx='190' cy='20' r='.8' opacity='.6'/%3E%3Ccircle cx='168' cy='196' r='.9' opacity='.55'/%3E%3Ccircle cx='104' cy='12' r='.7' opacity='.5'/%3E%3Ccircle cx='38' cy='118' r='.7' opacity='.45'/%3E%3C/g%3E%3C/svg%3E");
+    --bg: #0d1a38;
+    --card: #182b54;
+    --card-2: #132449;
+    --line: rgba(200, 222, 255, .13);
+    --line-2: rgba(200, 222, 255, .23);
+    --ink: #eaf1fb;
+    --ink-soft: #b2c3dc;
+    --ink-faint: #91a6c5;
+    --rule: rgba(200, 222, 255, .14);
+    --veil: rgba(2, 6, 18, .7);
     --shadow: rgba(0, 0, 0, .5);
-    --focus: #8fb4ff; --azure: #8fb4ff; --azure-ink: #a9c6ff; --mint: #5fbf86;
-    --lift: 0 1px 1px rgba(0, 0, 0, .45), 6px 14px 26px -12px rgba(0, 0, 0, .75);
-    --lift-lg: 0 1px 2px rgba(0, 0, 0, .45), 14px 30px 52px -24px rgba(0, 0, 0, .8);
+    --focus: #8fbaff; --azure: #8fbaff; --azure-ink: #a9caff; --mint: #5fbf86;
+    --lift: 0 1px 2px rgba(0, 4, 16, .4), 0 14px 30px -14px rgba(0, 4, 16, .75);
+    --lift-lg: 0 2px 4px rgba(0, 4, 16, .4), 0 30px 60px -26px rgba(0, 4, 16, .85);
     --sea: #16252a; --sea-2: #1d3036; --land: #2b2e27; --land-ink: #9a9884; --grat: rgba(170, 200, 200, .12);
     --polaroid: #e6e2d8; --tape: rgba(190, 174, 128, .62);
+    --shelf-top: #3b5285; --shelf-front: #2a3e6a; --shelf-edge: #1a2849; --shelf-shade: rgba(0, 0, 0, .38);
+    --wall-2: rgba(255, 255, 255, .03); --case-back: #0f1e3f; --floor: #22375f; --floor-2: #182a50;
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --bg: #10161c;
-  --card: #19222b;
-  --card-2: #141b22;
-  --line: rgba(220, 232, 244, .12);
-  --line-2: rgba(220, 232, 244, .22);
-  --ink: #e8edf1;
-  --ink-soft: #aab6c0;
-  --ink-faint: #8794a0;
-  --rule: rgba(220, 232, 244, .13);
-  --veil: rgba(3, 6, 9, .72);
+  --sky-top: #050b1d; --sky-mid: #0a1631; --sky-low: #10214a; --sky-end: #132753;
+  --ridges: var(--ridges-night); --haze: var(--haze-night); --mist: rgba(12, 24, 52, .7);
+  --glass: rgba(24, 40, 78, .55); --glass-hi: rgba(30, 48, 92, .78); --glass-lo: rgba(24, 40, 78, .34);
+  --glass-edge: rgba(200, 222, 255, .14); --glass-shadow: inset 0 1px 0 rgba(255, 255, 255, .06), 0 12px 32px -14px rgba(0, 0, 0, .6);
+  --stars: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cg fill='%23fff'%3E%3Ccircle cx='22' cy='34' r='1.1' opacity='.9'/%3E%3Ccircle cx='132' cy='88' r='.9' opacity='.7'/%3E%3Ccircle cx='74' cy='150' r='1.3' fill='%23fff4d6' opacity='.85'/%3E%3Ccircle cx='190' cy='20' r='.8' opacity='.6'/%3E%3Ccircle cx='168' cy='196' r='.9' opacity='.55'/%3E%3Ccircle cx='104' cy='12' r='.7' opacity='.5'/%3E%3Ccircle cx='38' cy='118' r='.7' opacity='.45'/%3E%3C/g%3E%3C/svg%3E");
+  --bg: #0d1a38;
+  --card: #182b54;
+  --card-2: #132449;
+  --line: rgba(200, 222, 255, .13);
+  --line-2: rgba(200, 222, 255, .23);
+  --ink: #eaf1fb;
+  --ink-soft: #b2c3dc;
+  --ink-faint: #91a6c5;
+  --rule: rgba(200, 222, 255, .14);
+  --veil: rgba(2, 6, 18, .7);
   --shadow: rgba(0, 0, 0, .5);
-  --focus: #8fb4ff; --azure: #8fb4ff; --azure-ink: #a9c6ff; --mint: #5fbf86;
-  --lift: 0 1px 1px rgba(0, 0, 0, .45), 6px 14px 26px -12px rgba(0, 0, 0, .75);
-  --lift-lg: 0 1px 2px rgba(0, 0, 0, .45), 14px 30px 52px -24px rgba(0, 0, 0, .8);
+  --focus: #8fbaff; --azure: #8fbaff; --azure-ink: #a9caff; --mint: #5fbf86;
+  --lift: 0 1px 2px rgba(0, 4, 16, .4), 0 14px 30px -14px rgba(0, 4, 16, .75);
+  --lift-lg: 0 2px 4px rgba(0, 4, 16, .4), 0 30px 60px -26px rgba(0, 4, 16, .85);
   --sea: #16252a; --sea-2: #1d3036; --land: #2b2e27; --land-ink: #9a9884; --grat: rgba(170, 200, 200, .12);
   --polaroid: #e6e2d8; --tape: rgba(190, 174, 128, .62);
+  --shelf-top: #3b5285; --shelf-front: #2a3e6a; --shelf-edge: #1a2849; --shelf-shade: rgba(0, 0, 0, .38);
+  --wall-2: rgba(255, 255, 255, .03); --case-back: #0f1e3f; --floor: #22375f; --floor-2: #182a50;
   color-scheme: dark;
 }

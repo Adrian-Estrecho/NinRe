@@ -18,6 +18,8 @@ interface Props {
   className?: string;
   /** Drawn over the front cover, e.g. a sticker editor. */
   overlay?: ReactNode;
+  /** A tap (a press that doesn't turn it) or Enter on the book, e.g. to open it. */
+  onTap?: () => void;
 }
 
 const REST = { x: -8, y: 26 };
@@ -25,7 +27,7 @@ const FRONT = { x: 0, y: 0 };
 const calm = () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 /** A clothbound book in 3D: front, back, spine and page edges. It settles back to its pose after being turned. */
-export function Book3D({ design, title, subtitle, photoUrl, width = "min(300px, 64vw)", pose = "angled", turnable = true, hideStickers, label, className = "", overlay }: Props) {
+export function Book3D({ design, title, subtitle, photoUrl, width = "min(300px, 64vw)", pose = "angled", turnable = true, hideStickers, label, className = "", overlay, onTap }: Props) {
   const home = pose === "front" ? FRONT : REST;
   const [rot, setRot] = useState(home);
   const [held, setHeld] = useState(false);
@@ -43,7 +45,10 @@ export function Book3D({ design, title, subtitle, photoUrl, width = "min(300px, 
     settle.current = window.setTimeout(() => setRot(home), ms);
   };
 
+  const press = useRef<{ x: number; y: number } | null>(null);
+
   function down(e: PointerEvent<HTMLDivElement>) {
+    if (e.button === 0) press.current = { x: e.clientX, y: e.clientY };
     if (!turnable || pose === "front" || e.button !== 0) return;
     drag.current = { x: e.clientX, y: e.clientY, rx: rot.x, ry: rot.y, id: e.pointerId };
     e.currentTarget.setPointerCapture(e.pointerId);
@@ -56,6 +61,14 @@ export function Book3D({ design, title, subtitle, photoUrl, width = "min(300px, 
     setRot({ x: Math.max(-28, Math.min(28, d.rx - (e.clientY - d.y) * 0.35)), y: d.ry + (e.clientX - d.x) * 0.5 });
   }
   function up(e: PointerEvent<HTMLDivElement>) {
+    const p = press.current;
+    press.current = null;
+    if (onTap && p && e.type === "pointerup" && Math.hypot(e.clientX - p.x, e.clientY - p.y) < 6) {
+      drag.current = null;
+      setHeld(false);
+      setRot(home);
+      return onTap();
+    }
     if (!drag.current || drag.current.id !== e.pointerId) return;
     drag.current = null;
     setHeld(false);
@@ -64,6 +77,10 @@ export function Book3D({ design, title, subtitle, photoUrl, width = "min(300px, 
     goHome(calm() ? 0 : 1400);
   }
   function keys(e: KeyboardEvent<HTMLDivElement>) {
+    if (onTap && (e.key === "Enter" || e.key === " ")) {
+      e.preventDefault();
+      return onTap();
+    }
     if (!turnable || pose === "front") return;
     const step: Record<string, [number, number]> = { ArrowLeft: [0, -20], ArrowRight: [0, 20], ArrowUp: [8, 0], ArrowDown: [-8, 0] };
     const s = step[e.key];
@@ -80,7 +97,7 @@ export function Book3D({ design, title, subtitle, photoUrl, width = "min(300px, 
 
   return (
     <div
-      className={`b3d ${held ? "held" : ""} ${interactive ? "turnable" : ""} ${className}`}
+      className={`b3d ${held ? "held" : ""} ${interactive ? "turnable" : ""} ${onTap ? "tappable" : ""} ${className}`}
       style={vars}
       {...data}
       onPointerDown={down}
@@ -88,9 +105,9 @@ export function Book3D({ design, title, subtitle, photoUrl, width = "min(300px, 
       onPointerUp={up}
       onPointerCancel={up}
       onKeyDown={keys}
-      tabIndex={interactive ? 0 : undefined}
-      role="img"
-      aria-label={label ?? `The cover of ${title}${interactive ? ". Drag or use the arrow keys to turn the book." : ""}`}
+      tabIndex={interactive || onTap ? 0 : undefined}
+      role={onTap ? "button" : "img"}
+      aria-label={label ?? `The cover of ${title}${interactive ? ". Drag or use the arrow keys to turn the book." : ""}${onTap ? " Press Enter to open it." : ""}`}
     >
       <div className="b3d-book">
         <div className="b3d-face b3d-front">

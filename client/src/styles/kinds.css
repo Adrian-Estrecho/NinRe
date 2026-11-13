@@ -1,0 +1,190 @@
+/* ---------- Kinds of book: how an album and a journal lay out their pages ---------- */
+
+/* Choosing the kind: cards in the new-book dialog, chips in the book's designer */
+.kinds { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.kind-card {
+  position: relative; display: grid; grid-template-columns: auto 1fr; column-gap: 10px; row-gap: 2px; align-items: start; padding: 10px 12px;
+  border: 1px solid var(--line-2); border-radius: 10px; cursor: pointer; transition: border-color .15s, background-color .15s, box-shadow .15s;
+}
+.kind-card input, .kind-chip input { position: absolute; opacity: 0; pointer-events: none; }
+.kind-card svg { grid-row: span 2; width: 22px; height: 22px; margin-top: 1px; color: var(--ink-soft); }
+.kind-name { font-size: .92rem; font-weight: 750; }
+.kind-blurb { font-size: .78rem; line-height: 1.35; color: var(--ink-soft); }
+.kind-card:hover { border-color: var(--ink-soft); }
+.kind-card.on { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); background: color-mix(in oklab, var(--ink) 5%, transparent); }
+.kind-card.on svg { color: var(--ink); }
+.kind-row { display: flex; flex-wrap: wrap; gap: 6px; }
+.kind-chip {
+  position: relative; display: inline-flex; align-items: center; gap: 7px; min-height: 36px; padding: 0 13px; border: 1px solid var(--line-2); border-radius: 999px;
+  font-size: .85rem; font-weight: 650; cursor: pointer; transition: background-color .15s, color .15s, border-color .15s;
+}
+.kind-chip svg { width: 17px; height: 17px; }
+.kind-chip.on { border-color: var(--ink); background: var(--ink); color: var(--bg); }
+.kind-card:has(input:focus-visible), .kind-chip:has(input:focus-visible) { outline: 2px solid var(--focus); outline-offset: 2px; }
+@media (max-width: 480px) { .kinds { grid-template-columns: 1fr; } }
+
+/* A photo set on a page. Inside .album it is framed in the book's photo style (book.css): a print by default. */
+.print { position: relative; margin: 0; min-width: 0; }
+.print img { display: block; width: 100%; height: auto; }
+.print figcaption { font-size: .78rem; color: var(--ink-faint); }
+.print.pending .leaf-thumb { display: block; width: 100%; height: 100%; min-height: 80px; padding: 0; }
+/* While writing: take a photo off, or put it first */
+.print-tools { position: absolute; z-index: 6; top: 6px; right: 6px; display: flex; gap: 4px; opacity: 0; transition: opacity .15s; }
+.print:hover > .print-tools, .print:focus-within > .print-tools { opacity: 1; }
+@media (hover: none) { .print-tools { opacity: 1; } }
+.print-tools button { width: 26px; height: 26px; padding: 0; display: grid; place-items: center; border: 2px solid var(--paper); border-radius: 50%; background: var(--ink); color: var(--paper); }
+.print-tools svg { width: 13px; height: 13px; }
+
+/* ---------- Album: a printed photo book ----------
+   The photos are printed straight on the paper and cover the pages: cropped to fill their places, with a thin white
+   margin and gutters (or bled right to the edges), and the title, day and place are a short caption under them.
+   The book's photo style (polaroid, clip, corners) is for journals; an album's prints are always flat. */
+.peek-book.album-book { --m: calc(var(--fw, 440px) * .045); --g: calc(var(--fw, 440px) * .016); }
+.peek-book.album-book > .left, .peek-book.album-book > .right { justify-content: flex-start; gap: var(--g); padding: var(--m); overflow: hidden; background-color: var(--paper); }
+.peek-book.album-book .album { flex: 1; min-height: 0; margin: 0; columns: auto; }
+.peek-book.album-book .album .print {
+  display: flex; flex-direction: column; min-width: 0; min-height: 0; margin: 0; padding: 0; overflow: hidden; border-radius: 0;
+  background: var(--paper-2); transform: none; box-shadow: none;
+}
+.peek-book.album-book .album .print::before, .peek-book.album-book .album .print::after { content: none; }
+.peek-book.album-book .album .print img { flex: 1 1 0; width: 100%; height: 100%; min-height: 0; aspect-ratio: auto; object-fit: cover; box-shadow: none; background: var(--paper-2); }
+/* A photo's caption, printed small over its foot: shown on hover (always, on a touch screen), so the page reads as photos */
+.peek-book.album-book .album .print figcaption {
+  position: absolute; left: 0; right: 0; bottom: 0; min-height: 0; padding: 22px 10px 7px; text-align: left; color: #fff;
+  font-family: var(--f-ui); font-size: .74rem; font-weight: 650; letter-spacing: .01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  background: linear-gradient(transparent, rgba(0, 0, 0, .5)); text-shadow: 0 1px 2px rgba(0, 0, 0, .35);
+}
+.peek-book.album-book .album .print figcaption:empty { display: none; }
+.peek-book.album-book .album .print figcaption .ed-ph { color: rgba(255, 255, 255, .78); }
+.peek-book.album-book .album .print figcaption .ed-field { color: var(--ink); background: var(--paper); text-shadow: none; }
+.peek-book.album-book .album .print figcaption { transition: opacity .2s; }
+.peek-book.album-book .album .print:not(:hover, :focus-within) figcaption:has(.ed-ph) { opacity: 0; }
+@media (hover: hover) { .peek-book.album-book .album .print:not(:hover, :focus-within) figcaption { opacity: 0; } }
+.peek-book.album-book .album .print:hover { transform: none; }
+
+/* Grid: even rows sharing the page */
+.album-grid { display: grid; grid-template-columns: repeat(var(--cols), minmax(0, 1fr)); grid-template-rows: repeat(var(--rows), minmax(0, 1fr)); gap: var(--g); }
+/* An odd one out in two columns: the first photo takes the whole first row */
+.album-grid.odd > :first-child { grid-column: 1 / -1; }
+/* Mosaic: one big photo on the outer side of the page, the rest packed around it */
+.album-mosaic { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: repeat(var(--rows), minmax(0, 1fr)); grid-auto-flow: dense; gap: var(--g); }
+.album-mosaic > .big { grid-column: span 2; grid-row: span 2; }
+.album-mosaic.r > .big { grid-column: 2 / span 2; }
+/* Feature: the first photo bled right to the edges of the left page */
+.peek-book.album-book.lay-feature > .left { padding: 0; }
+.album-feature { display: flex; }
+.album-feature .print.big { flex: 1; }
+
+/* The caption under the photos: the page's title, then the day, the occasion and the place, then a few words */
+.album-label { flex: none; max-height: 46%; overflow-y: auto; overscroll-behavior: contain; display: flex; flex-direction: column; gap: 3px; padding: 4px 2px 0; }
+.album-label-top { display: flex; align-items: center; gap: 10px; }
+.peek-book .album-label h2 { flex: 1; min-width: 0; margin: 0; padding: 0; font-size: clamp(1.05rem, 1.5vw, 1.3rem); line-height: 1.15; }
+.album-label .fulldate { font-size: .74rem; }
+.album-words { font-family: var(--f-body); font-size: .86rem; line-height: 1.45; color: var(--ink-soft); white-space: pre-line; }
+.album-book:not(.writing) .album-words { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.album-tools { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 10px; margin-top: 6px; }
+.album-tools .hint { font-size: .78rem; color: var(--ink-faint); }
+/* A page with no photos of its own on this side: the caption sits in the middle of it, larger, as a title page */
+.album-label:only-child { margin-block: auto; max-height: none; align-items: center; text-align: center; gap: 8px; }
+.album-label:only-child .album-label-top { flex-direction: column; gap: 10px; }
+.peek-book .album-label:only-child h2 { font-size: clamp(1.5rem, 2.4vw, 2rem); }
+.album-first { flex: 1; aspect-ratio: auto; }
+.album-none { margin: auto; font-family: var(--f-hand); font-size: 1.4rem; color: var(--ink-faint); }
+
+/* Notes: a button beside the title, opening them on a card over the right-hand page */
+.album-notes-btn {
+  flex: none; display: inline-flex; align-items: center; gap: 5px; min-height: 26px; padding: 0 10px; border: 1px solid var(--page-rule, var(--line-2)); border-radius: 999px;
+  background: var(--paper); color: var(--ink-soft); font: inherit; font-size: .72rem; font-weight: 750; transition: background-color .15s, color .15s;
+}
+.album-notes-btn svg { width: 14px; height: 14px; }
+.album-notes-btn:hover { color: var(--ink); }
+.album-notes-btn[aria-expanded="true"] { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+.album-notes {
+  position: absolute; z-index: 9; right: 3%; bottom: 3%; width: min(46%, 380px); max-height: 86%; overflow-y: auto; overscroll-behavior: contain; padding: 14px 16px;
+  border: 1px solid var(--page-rule, var(--line-2)); border-radius: 4px; background: var(--paper); color: var(--ink); box-shadow: 0 22px 44px -18px rgba(0, 0, 0, .55);
+  animation: rise .25s var(--ease-out);
+}
+.album-notes .notes { margin-top: 0; }
+.album-notes-x { position: absolute; top: 8px; right: 8px; width: 28px; height: 28px; padding: 0; display: grid; place-items: center; border: 0; border-radius: 50%; background: none; color: var(--ink-soft); }
+.album-notes-x:hover { background: var(--red-soft); color: var(--ink); }
+.album-notes-x svg { width: 15px; height: 15px; }
+
+/* Choosing the layout while writing: floats over the top of the spread */
+.lay-pick {
+  position: absolute; z-index: 8; top: 12px; left: 50%; transform: translateX(-50%); display: flex; gap: 2px; padding: 4px;
+  border: 1px solid var(--rule); border-radius: 999px; background: var(--paper); box-shadow: 0 8px 20px -10px rgba(0, 0, 0, .45);
+}
+.lay-pick button { width: 38px; height: 32px; padding: 0; display: grid; place-items: center; border: 0; border-radius: 999px; background: none; color: var(--ink-soft); transition: background-color .15s, color .15s; }
+.lay-pick button:hover { color: var(--ink); background: var(--red-soft); }
+.lay-pick button[aria-checked="true"] { background: var(--red); color: var(--paper); }
+.lay-pick svg { width: 19px; height: 19px; }
+/* In the reader it sits just above the top of the book instead (--bookh is the book's height on screen), and moves with
+   the book as it zooms; the same frosted pill as the zoom buttons under the book. */
+.leaf-tools {
+  position: fixed; z-index: 3; left: 50%; top: calc(50% - var(--lift, 0px) - var(--bookh) / 2 - 12px); transform: translate(-50%, -100%);
+  transition: top .5s var(--ease-out);
+}
+.leaf-tools:empty { display: none; }
+.leaf-tools .lay-pick {
+  position: static; transform: none; animation: spread-in .3s ease both;
+  border-color: color-mix(in oklab, var(--line-2) 70%, transparent); background: color-mix(in oklab, var(--card) 80%, transparent);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4); backdrop-filter: blur(16px) saturate(1.4); box-shadow: 0 10px 24px -12px rgba(10, 18, 26, .45);
+}
+.leaf-tools .lay-pick button { width: 42px; height: 36px; }
+@media (prefers-reduced-motion: reduce) { .leaf-tools { transition: none; } }
+
+/* Film strip: frames running down a dark strip with sprocket holes either side */
+.films { flex: 1; min-height: 0; display: flex; justify-content: center; gap: 18px; }
+.film {
+  flex: 0 1 50%; max-width: 240px; display: flex; flex-direction: column; gap: 10px; padding: 16px 22px; border-radius: 3px;
+  background-color: #1c1a18; box-shadow: 0 14px 24px -14px rgba(0, 0, 0, .65);
+  background-image: repeating-linear-gradient(transparent 0 5px, #e9e4d6 5px 11px, transparent 11px 17px), repeating-linear-gradient(transparent 0 5px, #e9e4d6 5px 11px, transparent 11px 17px);
+  background-size: 7px 100%, 7px 100%; background-position: 7px 0, calc(100% - 7px) 0; background-repeat: no-repeat;
+}
+.films:only-child .film { flex-basis: 62%; }
+.film .print { flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; }
+.film .print img { flex: 1 1 0; min-height: 0; aspect-ratio: auto; object-fit: cover; }
+.film .print figcaption {
+  flex: none; min-height: 14px; padding-top: 4px; font-family: var(--f-mono); font-size: .62rem; letter-spacing: .12em; text-transform: uppercase; color: #e8b04a;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.film .print figcaption .ed-ph { color: rgba(232, 176, 74, .6); }
+.film .print figcaption .ed-field { background: #2a2724; }
+
+/* Full spread: one photo across both pages, bled to every edge, the caption on a card over its corner */
+.spread-photo { position: absolute; inset: 0; z-index: 0; }
+.spread-photo img { width: 100%; height: 100%; object-fit: cover; }
+.spread-photo figcaption {
+  position: absolute; top: 22px; left: 24px; max-width: 40%; padding: 4px 12px; transform: rotate(-2deg);
+  background: var(--polaroid); color: var(--polaroid-ink); font-family: var(--f-hand); font-size: 1.2rem; box-shadow: 0 6px 14px -8px rgba(0, 0, 0, .5);
+}
+.spread-photo figcaption:empty { display: none; }
+.album-book:has(> .lay-pick) .spread-photo figcaption { top: 60px; }
+.spread-photo > .print-tools { top: 16px; right: 16px; }
+.album-book:has(> .lay-pick) .spread-photo > .print-tools { top: 60px; }
+.peek-book.album-book.lay-spread .left, .peek-book.album-book.lay-spread .right { position: relative; z-index: 1; background: none; pointer-events: none; }
+.peek-book.album-book.lay-spread .right { justify-content: flex-end; }
+.album-book.lay-spread .right > * { pointer-events: auto; }
+.peek-book.album-book.lay-spread .album-label {
+  align-self: flex-end; width: min(100%, 340px); max-height: 62%; margin-block: 0; padding: 12px 14px; align-items: stretch; text-align: left; gap: 4px;
+  border-radius: 3px; background: color-mix(in oklab, var(--paper) 92%, transparent); box-shadow: 0 14px 30px -16px rgba(0, 0, 0, .55);
+}
+.peek-book.album-book.lay-spread .album-label .album-label-top { flex-direction: row; }
+.peek-book.album-book.lay-spread .album-label h2 { font-size: clamp(1.05rem, 1.5vw, 1.3rem); }
+.spread-thumbs { position: absolute; z-index: 2; left: 22px; bottom: 20px; max-width: 44%; }
+.spread-thumbs .leaf-thumb { width: 50px; height: 50px; }
+
+/* ---------- Contents for each kind ---------- */
+
+.contact { list-style: none; margin: 0; padding: 4px 2px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px 14px; }
+.contact button {
+  display: flex; flex-direction: column; gap: 6px; width: 100%; padding: 5px 5px 7px; border: 0; background: var(--polaroid); color: var(--polaroid-ink); font: inherit; text-align: left;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .22); transition: transform .2s var(--ease-out), box-shadow .2s;
+}
+.contact li:nth-child(odd) button { transform: rotate(-1deg); }
+.contact li:nth-child(even) button { transform: rotate(1deg); }
+.contact button:hover, .contact button:focus-visible { transform: translateY(-3px) rotate(0deg); box-shadow: 0 10px 18px -10px rgba(0, 0, 0, .45); }
+.contact img, .contact-blank { display: grid; place-items: center; width: 100%; aspect-ratio: 1; object-fit: cover; background: #e6e3d8; font-family: var(--f-mono); color: #8a867a; }
+.contact-t { font-family: var(--f-hand); font-size: 1rem; line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.contact-t b { margin-right: 5px; font-family: var(--f-ui); font-size: .7rem; color: #8a867a; }
+
